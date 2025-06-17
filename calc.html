@@ -62,17 +62,18 @@
 <input type="number" id="days" value="10" min="1">
 
 <h3>Solar Cell</h3>
+<!-- Defaults tuned for an uxcell 1.5V 150mA panel with a Schottky diode -->
 <label for="voc">Open-Circuit Voltage (Voc) [V]</label>
-<input type="number" id="voc" value="2" step="any">
+<input type="number" id="voc" value="2.2" step="any">
 
 <label for="isc">Short-Circuit Current (Isc) [mA]</label>
 <input type="number" id="isc" value="150">
 
 <label for="ff">Fill Factor (FF, 0–1)</label>
-<input type="number" id="ff" value="0.70" step="any">
+<input type="number" id="ff" value="0.75" step="any">
 
 <label for="diodeDrop">Diode Voltage Drop (V)</label>
-<input type="number" id="diodeDrop" value="0.3" step="any">
+<input type="number" id="diodeDrop" value="0.25" step="any">
 
 <label for="chargeEff">Charge Efficiency (%)</label>
 <input type="number" id="chargeEff" value="85" min="0" max="100">
