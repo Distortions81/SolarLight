@@ -134,6 +134,7 @@ function simulate() {
             solarCurrent = impp * (1 - (vLoad - vmpp) / (voc - vmpp));
           }
           solarCurrent = Math.max(0, Math.min(isc, solarCurrent));
+
           delta_mAh = solarCurrent * chargeEff; // 1 hour
         }
       } else {
