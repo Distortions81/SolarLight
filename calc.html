@@ -52,9 +52,16 @@
 <input type="number" id="soc" value="100" min="0" max="100">
 <small class="note">Usually 80–100% after full charge</small>
 
-<label for="cells">NiCd Cell Count</label>
-<input type="number" id="cells" value="1">
+<label for="cells">Cell Count</label>
+<input type="number" id="cells" value="1" min="1">
 <small class="note">Most garden lights use 1 cell</small>
+
+<label for="chemistry">Battery Chemistry</label>
+<select id="chemistry">
+  <option value="NiMH" selected>NiMH</option>
+  <option value="NiCad">NiCad</option>
+</select>
+<small class="note">Affects safe discharge voltage</small>
 
 <label for="sunHours">Direct Sunlight Hours</label>
 <input type="number" id="sunHours" value="3">
@@ -72,7 +79,7 @@
 <small class="note">Joule thief/boost driver: 70–85%</small>
 
 <label for="days">Days to Simulate</label>
-<input type="number" id="days" value="10" min="1">
+<input type="number" id="days" value="10" min="1" max="30">
 
 <h3>Solar Cell</h3>
 <!-- Defaults tuned for an uxcell 1.5V 150mA panel with a Schottky diode -->
@@ -109,13 +116,16 @@ function simulate() {
   const nightHours = parseInt(document.getElementById("nightHours").value);
   const ledNominalCurrent = parseFloat(document.getElementById("ledCurrent").value);
   const driverEff = parseFloat(document.getElementById("driverEff").value) / 100;
-  const days = parseInt(document.getElementById("days").value);
+  const days = Math.min(30, parseInt(document.getElementById("days").value));
   const voc = parseFloat(document.getElementById("voc").value);
   const isc = parseFloat(document.getElementById("isc").value);
   const ff = parseFloat(document.getElementById("ff").value);
   const diodeDrop = parseFloat(document.getElementById("diodeDrop").value);
   const chargeEff = parseFloat(document.getElementById("chargeEff").value) / 100;
   const selfDischarge = parseFloat(document.getElementById("selfDischarge").value) / 100;
+  const chemistry = document.getElementById("chemistry").value;
+  const minCellV = chemistry === "NiCad" ? 0.9 : 1.0;
+  const damageData = [];
 
   let soc = initialSoC;
   const socData = [];
@@ -124,6 +134,7 @@ function simulate() {
 
   // LED power at 1.2V baseline
   const ledPower_mW = 1.2 * ledNominalCurrent;
+  const overChargeV = 1.45;
 
   for (let day = 0; day < days; day++) {
     for (let hour = 0; hour < 24; hour++) {
@@ -134,6 +145,7 @@ function simulate() {
       const cellV = 1.0 + 0.35 * (soc / 100);
       const batteryV = cells * cellV;
       voltageData.push(batteryV);
+      damageData.push((batteryV > cells * overChargeV || batteryV < cells * minCellV) ? batteryV : null);
 
       let delta_mAh = 0;
       const isSun = hour < sunHours;
@@ -196,6 +208,15 @@ function simulate() {
           tension: 0.3,
           yAxisID: 'yVoltage',
           fill: true
+        },
+        {
+          label: 'Battery Damage Risk',
+          data: damageData,
+          borderColor: 'red',
+          backgroundColor: 'red',
+          showLine: false,
+          pointRadius: 4,
+          yAxisID: 'yVoltage'
         }
       ]
     },
@@ -225,6 +246,12 @@ function simulate() {
     }
   });
 }
+
+window.addEventListener('load', () => {
+  simulate();
+  document.querySelectorAll('input, select').forEach(el =>
+    el.addEventListener('input', simulate));
+});
 </script>
 
 </body>
