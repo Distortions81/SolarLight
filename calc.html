@@ -49,8 +49,11 @@
 <label for="cells">NiCd Cell Count</label>
 <input type="number" id="cells" value="1">
 
-<label for="daylightHours">Daylight Duration (hours)</label>
-<input type="number" id="daylightHours" value="8">
+<label for="sunHours">Direct Sunlight Hours</label>
+<input type="number" id="sunHours" value="8">
+
+<label for="nightHours">Night Illumination Hours</label>
+<input type="number" id="nightHours" value="8">
 
 <label for="ledCurrent">LED Nominal Current @ 1.2V (mA)</label>
 <input type="number" id="ledCurrent" value="20">
@@ -88,7 +91,8 @@ function simulate() {
   const capacity = parseFloat(document.getElementById("capacity").value);
   const initialSoC = parseFloat(document.getElementById("soc").value);
   const cells = parseInt(document.getElementById("cells").value);
-  const daylightHours = parseInt(document.getElementById("daylightHours").value);
+  const sunHours = parseInt(document.getElementById("sunHours").value);
+  const nightHours = parseInt(document.getElementById("nightHours").value);
   const ledNominalCurrent = parseFloat(document.getElementById("ledCurrent").value);
   const days = parseInt(document.getElementById("days").value);
   const voc = parseFloat(document.getElementById("voc").value);
@@ -117,9 +121,10 @@ function simulate() {
       voltageData.push(batteryV);
 
       let delta_mAh = 0;
-      const isDay = hour < daylightHours;
+      const isSun = hour < sunHours;
+      const isNight = hour >= 24 - nightHours;
 
-      if (isDay) {
+      if (isSun) {
         const vLoad = batteryV + diodeDrop;
         if (vLoad < voc) {
           const pMax = voc * isc * ff; // mW
@@ -137,7 +142,7 @@ function simulate() {
 
           delta_mAh = solarCurrent * chargeEff; // 1 hour
         }
-      } else {
+      } else if (isNight) {
         // Adjust LED current to maintain constant power
         const actualLEDCurrent = batteryV > 0 ? ledPower_mW / batteryV : 0;
         delta_mAh = -actualLEDCurrent; // 1 hour
