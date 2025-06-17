@@ -7,6 +7,7 @@
   <style>
     body {
       font-family: sans-serif;
+      max-width: 1200px;
       margin: 2em auto;
       background: #f8f9fa;
       padding: 2em;
@@ -15,7 +16,7 @@
     label, input {
       display: block;
       margin-top: 1em;
-      width: 100%;
+      width: 200px;
     }
     input {
       padding: 8px;
@@ -53,7 +54,7 @@
 <small class="note">Typical AA/AAA NiMH: 600–1000 mAh</small>
 
 <label for="soc">Initial SoC (%)</label>
-<input type="number" id="soc" value="50" min="0" max="100">
+<input type="number" id="soc" value="70" min="0" max="100">
 <small class="note">Usually 80–100% after full charge</small>
 
 <label for="cells">Cell Count</label>
@@ -68,7 +69,7 @@
 <small class="note">Affects safe discharge voltage</small>
 
 <label for="sunHours">Direct Sunlight Hours</label>
-<input type="number" id="sunHours" value="6">
+<input type="number" id="sunHours" value="4">
 <small class="note">Commonly 3–6 hours</small>
 
 <label for="nightHours">Night Illumination Hours</label>
@@ -95,14 +96,14 @@
 <small class="note">Average sunset ~6pm</small>
 
 <label for="days">Days to Simulate</label>
-<input type="number" id="days" value="10" min="1" max="60">
+<input type="number" id="days" value="10" min="1" max="600">
 
 <h3>Solar Cell</h3>
 <label for="voc">Open-Circuit Voltage (Voc) [V]</label>
 <input type="number" id="voc" value="2.0" step="any">
 
 <label for="isc">Short-Circuit Current (Isc) [mA]</label>
-<input type="number" id="isc" value="100">
+<input type="number" id="isc" value="125">
 
 <label for="ff">Fill Factor (FF, 0–1)</label>
 <input type="number" id="ff" value="0.65" step="any">
@@ -141,7 +142,7 @@ function simulate() {
   const boostCutoff = parseFloat(document.getElementById("boostCutoff").value);
   const ledNominalCurrent = parseFloat(document.getElementById("ledCurrent").value);
   const driverEff = parseFloat(document.getElementById("driverEff").value) / 100;
-  const days = Math.min(30, parseInt(document.getElementById("days").value));
+  const days = Math.min(1200, parseInt(document.getElementById("days").value));
   let voc = parseFloat(document.getElementById("voc").value);
   let isc = parseFloat(document.getElementById("isc").value);
   const ff = parseFloat(document.getElementById("ff").value);
