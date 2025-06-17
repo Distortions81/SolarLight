@@ -71,6 +71,12 @@
 <label for="diodeDrop">Diode Voltage Drop (V)</label>
 <input type="number" id="diodeDrop" value="0.3" step="any">
 
+<label for="chargeEff">Charge Efficiency (%)</label>
+<input type="number" id="chargeEff" value="85" min="0" max="100">
+
+<label for="selfDischarge">Self-Discharge Rate (%/day)</label>
+<input type="number" id="selfDischarge" value="1" min="0" step="any">
+
 <button onclick="simulate()">Simulate</button>
 
 <canvas id="chart" width="700" height="400"></canvas>
@@ -89,6 +95,8 @@ function simulate() {
   const isc = parseFloat(document.getElementById("isc").value);
   const ff = parseFloat(document.getElementById("ff").value);
   const diodeDrop = parseFloat(document.getElementById("diodeDrop").value);
+  const chargeEff = parseFloat(document.getElementById("chargeEff").value) / 100;
+  const selfDischarge = parseFloat(document.getElementById("selfDischarge").value) / 100;
 
   let soc = initialSoC;
   const socData = [];
@@ -113,13 +121,19 @@ function simulate() {
 
       if (isDay) {
         const vLoad = batteryV + diodeDrop;
-        const solarCurrent = vLoad < voc ? isc * (1 - vLoad / voc) : 0;
-        delta_mAh = Math.max(0, solarCurrent); // 1 hour
+        if (vLoad < voc) {
+          const pMax = voc * isc * ff; // mW
+          const solarCurrent = Math.min(isc, pMax / vLoad);
+          delta_mAh = solarCurrent * chargeEff; // 1 hour
+        }
       } else {
         // Adjust LED current to maintain constant power
         const actualLEDCurrent = batteryV > 0 ? ledPower_mW / batteryV : 0;
         delta_mAh = -actualLEDCurrent; // 1 hour
       }
+
+      // self discharge (per hour)
+      delta_mAh -= (capacity * selfDischarge) / 24;
 
       const delta_soc = (delta_mAh / capacity) * 100;
       soc = Math.max(0, Math.min(100, soc + delta_soc));
