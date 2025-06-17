@@ -123,7 +123,18 @@ function simulate() {
         const vLoad = batteryV + diodeDrop;
         if (vLoad < voc) {
           const pMax = voc * isc * ff; // mW
-          const solarCurrent = Math.min(isc, pMax / vLoad);
+          const vmpp = voc * 0.8; // approximate voltage at MPP
+          const impp = pMax / vmpp; // current at MPP
+          let solarCurrent;
+          if (vLoad <= vmpp) {
+            // operate near MPP for lower battery voltage
+            solarCurrent = pMax / vLoad;
+          } else {
+            // linear drop of current above MPP toward Voc
+            solarCurrent = impp * (1 - (vLoad - vmpp) / (voc - vmpp));
+          }
+          solarCurrent = Math.max(0, Math.min(isc, solarCurrent));
+
           delta_mAh = solarCurrent * chargeEff; // 1 hour
         }
       } else {
