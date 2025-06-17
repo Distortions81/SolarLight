@@ -49,7 +49,7 @@
 <small class="note">Typical AA/AAA NiMH: 600–1000 mAh</small>
 
 <label for="soc">Initial SoC (%)</label>
-<input type="number" id="soc" value="80" min="0" max="100">
+<input type="number" id="soc" value="50" min="0" max="100">
 <small class="note">Usually 80–100% after full charge</small>
 
 <label for="cells">Cell Count</label>
@@ -58,8 +58,8 @@
 
 <label for="chemistry">Battery Chemistry</label>
 <select id="chemistry">
-  <option value="NiMH">NiMH</option>
-  <option value="NiCad" selected>NiCad</option>
+  <option value="NiMH" selected>NiMH</option>
+  <option value="NiCad">NiCad</option>
 </select>
 <small class="note">Affects safe discharge voltage</small>
 
@@ -68,11 +68,11 @@
 <small class="note">Commonly 3–6 hours</small>
 
 <label for="nightHours">Night Illumination Hours</label>
-<input type="number" id="nightHours" value="12">
+<input type="number" id="nightHours" value="9">
 <small class="note">Usually 8–12 hours</small>
 
 <label for="ledCurrent">LED Nominal Current @ 1.2V (mA)</label>
-<input type="number" id="ledCurrent" value="30">
+<input type="number" id="ledCurrent" value="20">
 <small class="note">Typical white LED current: ≈20 mA</small>
 <label for="driverEff">LED Driver Efficiency (%)</label>
 <input type="number" id="driverEff" value="70" min="0" max="100">
@@ -91,10 +91,9 @@
 <small class="note">Average US sunset ~6pm</small>
 
 <label for="days">Days to Simulate</label>
-<input type="number" id="days" value="10" min="1" max="30">
+<input type="number" id="days" value="10" min="1" max="60">
 
 <h3>Solar Cell</h3>
-<!-- Defaults tuned for an uxcell 1.5V 150mA panel with a Schottky diode -->
 <label for="voc">Open-Circuit Voltage (Voc) [V]</label>
 <input type="number" id="voc" value="2.0" step="any">
 
