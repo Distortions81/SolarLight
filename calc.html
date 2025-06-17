@@ -64,7 +64,7 @@
 <small class="note">Affects safe discharge voltage</small>
 
 <label for="sunHours">Direct Sunlight Hours</label>
-<input type="number" id="sunHours" value="5">
+<input type="number" id="sunHours" value="6">
 <small class="note">Commonly 3–6 hours</small>
 
 <label for="nightHours">Night Illumination Hours</label>
@@ -77,6 +77,18 @@
 <label for="driverEff">LED Driver Efficiency (%)</label>
 <input type="number" id="driverEff" value="70" min="0" max="100">
 <small class="note">Joule thief/boost driver: 70–85%</small>
+
+<label for="boostCutoff">Boost Converter Cutoff (V/cell)</label>
+<input type="number" id="boostCutoff" value="0.9" step="any">
+<small class="note">LED driver stops below this voltage</small>
+
+<label for="sunrise">Sunrise Hour (0–23)</label>
+<input type="number" id="sunrise" value="6" min="0" max="23">
+<small class="note">Average US sunrise ~6am</small>
+
+<label for="sunset">Sunset Hour (0–23)</label>
+<input type="number" id="sunset" value="18" min="1" max="23">
+<small class="note">Average US sunset ~6pm</small>
 
 <label for="days">Days to Simulate</label>
 <input type="number" id="days" value="10" min="1" max="60">
@@ -100,6 +112,14 @@
 <label for="selfDischarge">Self-Discharge Rate (%/day)</label>
 <input type="number" id="selfDischarge" value="3" min="0" step="any">
 
+<label><input type="checkbox" id="enableDeg" checked> Simulate Component Degeneration</label>
+<label for="degBattery">Battery Capacity Loss per Day (%)</label>
+<input type="number" id="degBattery" value="0.05" step="any">
+<small class="note">Typical NiCad loses ~0.05% per day</small>
+<label for="degSolar">Solar Cell Power Loss per Day (%)</label>
+<input type="number" id="degSolar" value="0.02" step="any">
+<small class="note">Panel aging ~0.02% per day</small>
+
 <button onclick="simulate()">Simulate</button>
 
 <canvas id="chart" width="700" height="400"></canvas>
@@ -108,27 +128,35 @@
 let chart;
 
 function simulate() {
-  const capacity = parseFloat(document.getElementById("capacity").value);
+  let capacity = parseFloat(document.getElementById("capacity").value);
   const initialSoC = parseFloat(document.getElementById("soc").value);
   const cells = parseInt(document.getElementById("cells").value);
   const sunHours = parseInt(document.getElementById("sunHours").value);
   const nightHours = parseInt(document.getElementById("nightHours").value);
+  const sunrise = parseInt(document.getElementById("sunrise").value);
+  const sunset = parseInt(document.getElementById("sunset").value);
+  const boostCutoff = parseFloat(document.getElementById("boostCutoff").value);
   const ledNominalCurrent = parseFloat(document.getElementById("ledCurrent").value);
   const driverEff = parseFloat(document.getElementById("driverEff").value) / 100;
   const days = Math.min(30, parseInt(document.getElementById("days").value));
-  const voc = parseFloat(document.getElementById("voc").value);
-  const isc = parseFloat(document.getElementById("isc").value);
+  let voc = parseFloat(document.getElementById("voc").value);
+  let isc = parseFloat(document.getElementById("isc").value);
   const ff = parseFloat(document.getElementById("ff").value);
   const diodeDrop = parseFloat(document.getElementById("diodeDrop").value);
   const chargeEff = parseFloat(document.getElementById("chargeEff").value) / 100;
   const selfDischarge = parseFloat(document.getElementById("selfDischarge").value) / 100;
+  const enableDeg = document.getElementById("enableDeg").checked;
+  const degBattery = parseFloat(document.getElementById("degBattery").value) / 100;
+  const degSolar = parseFloat(document.getElementById("degSolar").value) / 100;
   const chemistry = document.getElementById("chemistry").value;
   const minCellV = chemistry === "NiCad" ? 0.9 : 1.0;
   const damageData = [];
 
   let soc = initialSoC;
   const socData = [];
+  const socColors = [];
   const voltageData = [];
+  const ledData = [];
   const labels = [];
 
   // LED power at 1.2V baseline
@@ -136,6 +164,12 @@ function simulate() {
   const overChargeV = 1.45;
 
   for (let day = 0; day < days; day++) {
+    if (day > 0 && enableDeg) {
+      capacity *= (1 - degBattery);
+      voc *= (1 - degSolar);
+      isc *= (1 - degSolar);
+    }
+
     for (let hour = 0; hour < 24; hour++) {
       labels.push(`Day ${day + 1}, ${hour}:00`);
       socData.push(soc);
@@ -146,9 +180,17 @@ function simulate() {
       voltageData.push(batteryV);
       damageData.push((batteryV > cells * overChargeV || batteryV < cells * minCellV) ? batteryV : null);
 
+      socColors.push(soc > 80 ? 'gold' : soc < 30 ? 'red' : '#28a745');
+
       let delta_mAh = 0;
-      const isSun = hour < sunHours;
-      const isNight = hour >= 24 - nightHours;
+      const isSun = hour >= sunrise && hour < Math.min(24, sunrise + sunHours);
+      const nightEnd = (sunset + nightHours) % 24;
+      const isNight = nightEnd > sunset ?
+        (hour >= sunset && hour < nightEnd) :
+        (hour >= sunset || hour < nightEnd);
+
+      const ledOn = isNight && batteryV > cells * boostCutoff;
+      ledData.push(ledOn ? 1 : 0);
 
       if (isSun) {
         const vLoad = batteryV + diodeDrop;
@@ -168,7 +210,7 @@ function simulate() {
 
           delta_mAh = solarCurrent * chargeEff; // 1 hour
         }
-      } else if (isNight) {
+      } else if (ledOn) {
         // Adjust LED current to maintain constant power
         const actualLEDCurrent = batteryV > 0 ? (ledPower_mW / driverEff) / batteryV : 0;
         delta_mAh = -actualLEDCurrent; // 1 hour
@@ -197,7 +239,8 @@ function simulate() {
           backgroundColor: 'rgba(40,167,69,0.1)',
           tension: 0.3,
           yAxisID: 'ySoC',
-          fill: true
+          fill: true,
+          pointBackgroundColor: socColors
         },
         {
           label: 'Battery Voltage (V)',
@@ -216,6 +259,14 @@ function simulate() {
           showLine: false,
           pointRadius: 4,
           yAxisID: 'yVoltage'
+        },
+        {
+          type: 'bar',
+          label: 'LED On',
+          data: ledData,
+          backgroundColor: 'rgba(255,215,0,0.3)',
+          borderWidth: 0,
+          yAxisID: 'yLED'
         }
       ]
     },
@@ -240,6 +291,12 @@ function simulate() {
           max: cells * 1.4,
           title: { display: true, text: 'Battery Voltage (V)' },
           grid: { drawOnChartArea: false }
+        },
+        yLED: {
+          type: 'linear',
+          display: false,
+          min: 0,
+          max: 1
         }
       }
     }
