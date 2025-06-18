@@ -330,7 +330,6 @@ let chartLong;
   const ledVoltageRef = 1.5;
   const ledGamma = 2.2;
   const ledVoltExp = 2;
-  let overCharge = 0;
   let cycleProgress = 0;
 
   for (let day = 0; day < days; day++) {
@@ -341,10 +340,9 @@ let chartLong;
       voc *= (1 - degSolar);
       isc *= (1 - degSolar);
       ledBrightFactor *= (1 - degLED);
-      const stored = ((soc + overCharge) / 100) * prevCap;
+      const stored = (soc / 100) * prevCap;
       const adjPct = capacity > 0 ? (stored / capacity) * 100 : 0;
       soc = Math.min(100, adjPct);
-      overCharge = Math.max(0, adjPct - 100);
     }
 
     const stepsPerHour = 60;
@@ -360,11 +358,11 @@ let chartLong;
 
     for (let hour = 0; hour < 24; hour++) {
       labels.push(`Day ${day + 1}, ${hour}:00`);
-      socData.push(Math.min(100, ((soc + overCharge) * capacity) / initialCapacity));
+      socData.push(Math.min(100, (soc * capacity) / initialCapacity));
 
       const cellStart = Math.min(
         maxCellV,
-        0.9 + 0.7 * (soc / 100) + 0.01 * overCharge
+        0.9 + 0.7 * (soc / 100)
       );
       let batteryV = cells * cellStart;
       let damageFlag = batteryV > cells * damageHighV || batteryV < cells * damageLowV;
@@ -414,7 +412,7 @@ let chartLong;
           const batteryCurrent = ledCurrent / driverEff;
           const physBright = Math.min(1, curve * ledBrightFactor);
           brightnessPct = Math.pow(physBright, ledGamma) * 100;
-          const available = ((soc + overCharge) / 100) * capacity;
+          const available = (soc / 100) * capacity;
           if (available >= batteryCurrent / stepsPerHour) {
             ledMinutes++;
             brightSum += brightnessPct;
@@ -454,25 +452,21 @@ let chartLong;
         if (capacity > 0) {
           delta_soc = (delta_mAh / capacity) * 100;
         }
-        let totalCharge = soc + overCharge + delta_soc;
+        let totalCharge = soc + delta_soc;
         if (capacity <= 0) {
           soc = 0;
-          overCharge = 0;
         } else if (totalCharge >= 100) {
           soc = 100;
-          overCharge = totalCharge - 100;
         } else if (totalCharge >= 0) {
           soc = totalCharge;
-          overCharge = 0;
         } else {
           soc = 0;
-          overCharge = 0;
         }
         currentSum += delta_mAh;
 
         const cellV = Math.min(
           maxCellV,
-          0.9 + 0.7 * (soc / 100) + 0.01 * overCharge
+          0.9 + 0.7 * (soc / 100)
         );
         batteryV = cells * cellV;
         const inDamageRange = batteryV > cells * damageHighV || batteryV < cells * damageLowV;
@@ -482,10 +476,9 @@ let chartLong;
           const prevCap = capacity;
           capacity *= 1 - damageHourDegrade / stepsPerHour;
           capacity = Math.max(0, capacity);
-          const stored = ((soc + overCharge) / 100) * prevCap;
+          const stored = (soc / 100) * prevCap;
           const adjPct = capacity > 0 ? (stored / capacity) * 100 : 0;
           soc = Math.min(100, adjPct);
-          overCharge = Math.max(0, adjPct - 100);
         }
 
         cycleProgress += Math.abs(delta_soc) / 100;
@@ -494,10 +487,9 @@ let chartLong;
           const prevCap = capacity;
           capacity *= Math.pow(1 - degCycle, cycles);
           capacity = Math.max(0, capacity);
-          const stored = ((soc + overCharge) / 100) * prevCap;
+          const stored = (soc / 100) * prevCap;
           const adjPct = capacity > 0 ? (stored / capacity) * 100 : 0;
           soc = Math.min(100, adjPct);
-          overCharge = Math.max(0, adjPct - 100);
           cycleProgress -= cycles;
         }
       }
@@ -511,7 +503,7 @@ let chartLong;
       currentData.push(currentSum);
       const cellEnd = Math.min(
         maxCellV,
-        0.9 + 0.7 * (soc / 100) + 0.01 * overCharge
+        0.9 + 0.7 * (soc / 100)
       );
       const batteryEnd = cells * cellEnd;
       if (damageFlag || batteryEnd > cells * damageHighV || batteryEnd < cells * damageLowV) {
