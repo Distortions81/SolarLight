@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Solar Battery Simulation (Voltage + SoC)</title>
+  <title>Solar Garden Light Sim</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
@@ -185,7 +185,7 @@
 
 <div class="field">
 <label for="ledCurrent">LED Nominal Current @ 1.2V (mA)</label>
-<input type="number" id="ledCurrent" value="15">
+<input type="number" id="ledCurrent" value="20">
 <small class="note">Typical white LED current: ≈10-30 mA</small>
 </div>
 
@@ -450,7 +450,7 @@ function runSim(simDays, canvasId, oldChart) {
           type: 'linear',
           position: 'right',
           min: cells * 1.0,
-          max: cells * 1.6,
+          max: cells * 1.8,
           title: { display: true, text: 'Battery Voltage (V)' },
           grid: { drawOnChartArea: false }
         },
