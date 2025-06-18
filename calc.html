@@ -71,37 +71,37 @@
 
 <div class="field">
 <label for="sunHours">Direct Sunlight Hours</label>
-<input type="number" id="sunHours" value="5">
+<input type="number" id="sunHours" value="5" step="any">
 <small class="note">Commonly 3–6 hours</small>
 </div>
 
 <div class="field">
 <label for="indirectHours">Indirect Sunlight Hours</label>
-<input type="number" id="indirectHours" value="2" min="0">
+<input type="number" id="indirectHours" value="2" min="0" step="any">
 <small class="note">Shaded or off-angle sun</small>
 </div>
 
 <div class="field">
 <label for="morningHours">Indirect Morning Light Hours</label>
-<input type="number" id="morningHours" value="1" min="0">
+<input type="number" id="morningHours" value="1" min="0" step="any">
 <small class="note">Early dawn ambient light</small>
 </div>
 
 <div class="field">
 <label for="nightHours">Night Illumination Hours</label>
-<input type="number" id="nightHours" value="10">
+<input type="number" id="nightHours" value="10" step="any">
 <small class="note">Usually 8–12 hours</small>
 </div>
 
 <div class="field">
 <label for="sunrise">Sunrise Hour (0–23)</label>
-<input type="number" id="sunrise" value="6" min="0" max="23">
+<input type="number" id="sunrise" value="6" min="0" max="23" step="any">
 <small class="note">Average sunrise ~6am</small>
 </div>
 
 <div class="field">
 <label for="sunset">Sunset Hour (0–23)</label>
-<input type="number" id="sunset" value="18" min="1" max="23">
+<input type="number" id="sunset" value="18" min="1" max="23" step="any">
 <small class="note">Average sunset ~6pm</small>
 </div>
 
@@ -263,7 +263,8 @@ let chartLong;
 
   function runSim(simDays, canvasId, oldChart) {
     let capacity = parseFloat(document.getElementById("capacity").value);
-    const initialCapacity = capacity;
+    capacity = Math.max(0, capacity);
+    const initialCapacity = capacity > 0 ? capacity : 1;
   const initialSoC = parseFloat(document.getElementById("soc").value);
   const cells = parseInt(document.getElementById("cells").value);
   const sunHours = parseFloat(document.getElementById("sunHours").value);
@@ -297,6 +298,9 @@ let chartLong;
   const damageData = [];
 
   let soc = initialSoC;
+  if (capacity <= 0) {
+    soc = 0;
+  }
   const socData = [];
   const socColors = [];
   const voltageData = [];
@@ -332,11 +336,12 @@ let chartLong;
     if (day > 0 && enableDeg) {
       const prevCap = capacity;
       capacity *= (1 - degBattery);
+      capacity = Math.max(0, capacity);
       voc *= (1 - degSolar);
       isc *= (1 - degSolar);
       ledBrightFactor *= (1 - degLED);
       const stored = ((soc + overCharge) / 100) * prevCap;
-      const adjPct = (stored / capacity) * 100;
+      const adjPct = capacity > 0 ? (stored / capacity) * 100 : 0;
       soc = Math.min(100, adjPct);
       overCharge = Math.max(0, adjPct - 100);
     }
@@ -420,9 +425,15 @@ let chartLong;
 
       delta_mAh -= (capacity * selfDischarge) / 24;
 
-      const delta_soc = (delta_mAh / capacity) * 100;
+      let delta_soc = 0;
+      if (capacity > 0) {
+        delta_soc = (delta_mAh / capacity) * 100;
+      }
       let totalCharge = soc + overCharge + delta_soc;
-      if (totalCharge >= 100) {
+      if (capacity <= 0) {
+        soc = 0;
+        overCharge = 0;
+      } else if (totalCharge >= 100) {
         soc = 100;
         overCharge = totalCharge - 100;
       } else if (totalCharge >= 0) {
@@ -436,8 +447,9 @@ let chartLong;
         if (enableDeg && inDamageRange) {
           const prevCap = capacity;
           capacity *= (1 - damageHourDegrade);
+          capacity = Math.max(0, capacity);
           const stored = ((soc + overCharge) / 100) * prevCap;
-          const adjPct = (stored / capacity) * 100;
+          const adjPct = capacity > 0 ? (stored / capacity) * 100 : 0;
           soc = Math.min(100, adjPct);
           overCharge = Math.max(0, adjPct - 100);
         }
@@ -446,8 +458,9 @@ let chartLong;
         const cycles = Math.floor(cycleProgress);
         const prevCap = capacity;
         capacity *= Math.pow(1 - degCycle, cycles);
+        capacity = Math.max(0, capacity);
         const stored = ((soc + overCharge) / 100) * prevCap;
-        const adjPct = (stored / capacity) * 100;
+        const adjPct = capacity > 0 ? (stored / capacity) * 100 : 0;
         soc = Math.min(100, adjPct);
         overCharge = Math.max(0, adjPct - 100);
         cycleProgress -= cycles;
