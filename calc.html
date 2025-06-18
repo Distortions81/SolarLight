@@ -172,6 +172,11 @@ function simulate() {
   const dayData = [];
   const morningData = [];
   const labels = [];
+  // Non-direct light factors based on typical cloudy-day output
+  // Solar panels produce around 10–25% of normal power when clouds block the sun
+  // See: duckduckgo result snippet mentioning 10–25% output on cloudy days
+  const dayFactor = 0.2; // daylight but not direct sun
+  const morningFactor = 0.05; // very low early morning light
 
   // LED power at 1.2V baseline
   const ledPower_mW = 1.2 * ledNominalCurrent;
@@ -219,23 +224,33 @@ function simulate() {
       const ledOn = isNight && batteryV > cells * boostCutoff;
       ledData.push(ledOn ? 1 : 0);
 
-      if (isSun) {
-        const vLoad = batteryV + diodeDrop;
-        if (vLoad < voc) {
-          const pMax = voc * isc * ff; // mW
-          const vmpp = voc * 0.8; // approximate voltage at MPP
-          const impp = pMax / vmpp; // current at MPP
-          let solarCurrent;
-          if (vLoad <= vmpp) {
-            // operate near MPP for lower battery voltage
-            solarCurrent = pMax / vLoad;
-          } else {
-            // linear drop of current above MPP toward Voc
-            solarCurrent = impp * (1 - (vLoad - vmpp) / (voc - vmpp));
-          }
-          solarCurrent = Math.max(0, Math.min(isc, solarCurrent));
+      if (isSun || isDay || isMorning) {
+        let intensity = 0;
+        if (isSun) {
+          intensity = 1;
+        } else if (isDay) {
+          intensity = dayFactor;
+        }
+        if (isMorning) intensity = Math.max(intensity, morningFactor);
 
-          delta_mAh = solarCurrent * chargeEff; // 1 hour
+        if (intensity > 0) {
+          const vLoad = batteryV + diodeDrop;
+          if (vLoad < voc) {
+            const pMax = voc * isc * ff * intensity; // mW scaled by light level
+            const vmpp = voc * 0.8; // approximate voltage at MPP
+            const impp = pMax / vmpp; // current at MPP
+            let solarCurrent;
+            if (vLoad <= vmpp) {
+              // operate near MPP for lower battery voltage
+              solarCurrent = pMax / vLoad;
+            } else {
+              // linear drop of current above MPP toward Voc
+              solarCurrent = impp * (1 - (vLoad - vmpp) / (voc - vmpp));
+            }
+            solarCurrent = Math.max(0, Math.min(isc * intensity, solarCurrent));
+
+            delta_mAh = solarCurrent * chargeEff; // 1 hour
+          }
         }
       } else if (ledOn) {
         // Adjust LED current to maintain constant power
