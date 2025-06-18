@@ -69,13 +69,13 @@
 
 <div class="field">
 <label for="sunHours">Direct Sunlight Hours</label>
-<input type="number" id="sunHours" value="4">
+<input type="number" id="sunHours" value="5">
 <small class="note">Commonly 3–6 hours</small>
 </div>
 
 <div class="field">
 <label for="indirectHours">Indirect Sunlight Hours</label>
-<input type="number" id="indirectHours" value="1" min="0">
+<input type="number" id="indirectHours" value="2" min="0">
 <small class="note">Shaded or off-angle sun</small>
 </div>
 
@@ -87,7 +87,7 @@
 
 <div class="field">
 <label for="nightHours">Night Illumination Hours</label>
-<input type="number" id="nightHours" value="8">
+<input type="number" id="nightHours" value="10">
 <small class="note">Usually 8–12 hours</small>
 </div>
 
@@ -112,13 +112,13 @@
 
 <div class="field">
 <label for="capacity">Battery Capacity (mAh)</label>
-<input type="number" id="capacity" value="300">
+<input type="number" id="capacity" value="600">
 <small class="note">Typical AA/AAA NiMH: 300,600 or 1000 mAh</small>
 </div>
 
 <div class="field">
 <label for="soc">Initial SoC (%)</label>
-<input type="number" id="soc" value="70" min="0" max="100">
+<input type="number" id="soc" value="90" min="0" max="100">
 <small class="note">Usually 80–100% after full charge</small>
 </div>
 
@@ -139,65 +139,82 @@
 
 <div class="field">
 <label for="selfDischarge">Self-Discharge Rate (%/day)</label>
-<input type="number" id="selfDischarge" value="3" min="0" step="any">
+<input type="number" id="selfDischarge" value="1.5" min="0" step="any">
 </div>
 
 <div class="field">
 <label for="degBattery">Battery Capacity Loss per Day (%)</label>
-<input type="number" id="degBattery" value="0.05" step="any">
+<input type="number" id="degBattery" value="0.01" step="any">
 <small class="note">Typical NiCad loses ~0.05% per day</small>
+</div>
+
+<div class="field">
+<label for="damageHighV">Damage High Voltage (V/cell)</label>
+<input type="number" id="damageHighV" value="1.4" step="any">
+<small class="note">Above this voltage battery degrades</small>
+</div>
+
+<div class="field">
+<label for="damageLowV">Damage Low Voltage (V/cell)</label>
+<input type="number" id="damageLowV" value="1.0" step="any">
+<small class="note">Below this voltage battery degrades</small>
+</div>
+
+<div class="field">
+<label for="damageRate">Damage Capacity Loss per Hour (%)</label>
+<input type="number" id="damageRate" value="0.1" step="any">
 </div>
 
 <h3 class="full">Solar Cell</h3>
 
 <div class="field">
 <label for="voc">Open-Circuit Voltage (Voc) [V]</label>
-<input type="number" id="voc" value="2.0" step="any">
+<input type="number" id="voc" value="1.8" step="any">
 </div>
 
 <div class="field">
 <label for="isc">Short-Circuit Current (Isc) [mA]</label>
-<input type="number" id="isc" value="150">
+<input type="number" id="isc" value="120">
 </div>
 
 <div class="field">
 <label for="ff">Fill Factor (FF, 0–1)</label>
-<input type="number" id="ff" value="0.65" step="any">
+<input type="number" id="ff" value="0.70" step="any">
 </div>
 
 <div class="field">
 <label for="diodeDrop">Diode Voltage Drop (V)</label>
-<input type="number" id="diodeDrop" value="0.4" step="any">
+<input type="number" id="diodeDrop" value="0.3" step="any">
 </div>
 
 <div class="field">
 <label for="chargeEff">Charge Efficiency (%)</label>
-<input type="number" id="chargeEff" value="70" min="0" max="100">
+<input type="number" id="chargeEff" value="85" min="0" max="100">
 </div>
 
 <div class="field">
 <label for="degSolar">Solar Cell Power Loss per Day (%)</label>
-<input type="number" id="degSolar" value="0.02" step="any">
-<small class="note">Panel aging ~0.02% per day</small>
+<input type="number" id="degSolar" value="0.01" step="any">
+<small class="note">Panel aging ~0.01% per day</small>
 </div>
 
 <h3 class="full">Circuitry</h3>
 
 <div class="field">
 <label for="ledCurrent">LED Nominal Current @ 1.2V (mA)</label>
-<input type="number" id="ledCurrent" value="20">
+<input type="number" id="ledCurrent" value="25">
 <small class="note">Typical white LED current: ≈10-30 mA</small>
 </div>
 
 <div class="field">
 <label for="driverEff">LED Driver Efficiency (%)</label>
-<input type="number" id="driverEff" value="70" min="0" max="100">
+<input type="number" id="driverEff" value="80" min="0" max="100">
 <small class="note">Boost driver: 70–85%</small>
 </div>
 
 <div class="field">
 <label for="boostCutoff">Boost Converter Cutoff (V/cell)</label>
-<input type="number" id="boostCutoff" value="0.9" step="any">
+<input type="number" id="boostCutoff" value="0.95" step="any">
 <small class="note">LED driver stops below this voltage</small>
 </div>
 
@@ -239,9 +256,10 @@ let chartLong;
   const degSolar = parseFloat(document.getElementById("degSolar").value) / 100;
   const chemistry = document.getElementById("chemistry").value;
   const maxCellV = chemistry === "NiCad" ? 1.65 : 1.55;
-  const damageHighV = 1.4; // voltage above which damage occurs (per cell)
-  const damageLowV = 1.0;  // voltage below which damage occurs (per cell)
-  const damageHourDegrade = 0.001; // capacity loss per hour in damage range
+  const damageHighV = parseFloat(document.getElementById("damageHighV").value);
+  const damageLowV = parseFloat(document.getElementById("damageLowV").value);
+  const damageHourDegrade =
+    parseFloat(document.getElementById("damageRate").value) / 100;
   const damageData = [];
 
   let soc = initialSoC;
