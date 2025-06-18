@@ -113,7 +113,7 @@
 
 <div class="field">
 <label for="capacity">Battery Capacity (mAh)</label>
-<input type="number" id="capacity" value="300">
+<input type="number" id="capacity" value="600">
 <small class="note">Typical AA/AAA NiMH: 300,600 or 1000 mAh</small>
 </div>
 
@@ -132,8 +132,8 @@
 <div class="field">
 <label for="chemistry">Battery Chemistry</label>
 <select id="chemistry">
-  <option value="NiMH" selected>NiMH</option>
-  <option value="NiCad">NiCad</option>
+  <option value="NiMH">NiMH</option>
+  <option value="NiCad" selected>NiCad</option>
 </select>
 <small class="note">Affects safe discharge voltage</small>
 </div>
@@ -157,14 +157,14 @@
 
 <div class="field">
 <label for="damageHighV">Damage High Voltage (V/cell)</label>
-<input type="number" id="damageHighV" value="1.45" step="any">
-<small class="note">NiMH ≈1.45V, NiCad ≈1.4V</small>
+<input type="number" id="damageHighV" value="1.550" step="any">
+<small class="note">NiMH ≈1.55V, NiCad ≈1.6V</small>
 </div>
 
 <div class="field">
 <label for="damageLowV">Damage Low Voltage (V/cell)</label>
 <input type="number" id="damageLowV" value="1.0" step="any">
-<small class="note">NiMH ≈1.0V, NiCad ≈0.9V</small>
+<small class="note">NiMH ≈1.1V, NiCad ≈1.0V</small>
 </div>
 
 <div class="field">
