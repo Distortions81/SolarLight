@@ -177,7 +177,14 @@ function simulate() {
   const indirectData = [];
   const dayData = [];
   const morningData = [];
+  const currentData = [];
+  const currentDaily = [];
   const labels = [];
+  const labelsDaily = [];
+  const socHigh = [];
+  const socLow = [];
+  const voltageHigh = [];
+  const voltageLow = [];
   // Non-direct light factors based on typical cloudy-day output
   // Solar panels produce around 10–25% of normal power when clouds block the sun
   // See: duckduckgo result snippet mentioning 10–25% output on cloudy days
@@ -285,92 +292,79 @@ function simulate() {
         soc = 0;
         overCharge = 0;
       }
+      currentData.push(delta_mAh);
     }
   }
+
+  if (days > 15) {
+    for (let day = 0; day < days; day++) {
+      const start = day * 24;
+      const end = start + 24;
+      labelsDaily.push(`Day ${day + 1}`);
+      socHigh.push(Math.max(...socData.slice(start, end)));
+      socLow.push(Math.min(...socData.slice(start, end)));
+      voltageHigh.push(Math.max(...voltageData.slice(start, end)));
+      voltageLow.push(Math.min(...voltageData.slice(start, end)));
+      const avgCur = currentData.slice(start, end).reduce((a, b) => a + b, 0) / 24;
+      currentDaily.push(avgCur);
+    }
+  }
+
+  const curArray = days > 15 ? currentDaily : currentData;
+  const maxCurrent = curArray.reduce((m, v) => Math.max(m, Math.abs(v)), 0) || 1;
 
   const ctx = document.getElementById("chart").getContext("2d");
   if (chart) chart.destroy();
 
+  const labelsForChart = days > 15 ? labelsDaily : labels;
+  const datasets = [];
+
+  if (days > 15) {
+    datasets.push(
+      { label: 'Battery SoC High (%)', data: socHigh, borderColor: '#28a745', tension: 0.3, yAxisID: 'ySoC', fill: false },
+      { label: 'Battery SoC Low (%)', data: socLow, borderColor: '#28a745', tension: 0.3, yAxisID: 'ySoC', fill: false },
+      { label: 'Battery Voltage High (V)', data: voltageHigh, borderColor: '#007bff', tension: 0.3, yAxisID: 'yVoltage', fill: false },
+      { label: 'Battery Voltage Low (V)', data: voltageLow, borderColor: '#007bff', tension: 0.3, yAxisID: 'yVoltage', fill: false }
+    );
+  } else {
+    datasets.push(
+      { label: 'Battery SoC (%)', data: socData, borderColor: '#28a745', backgroundColor: 'rgba(40,167,69,0.1)', tension: 0.3, yAxisID: 'ySoC', fill: true, pointBackgroundColor: socColors },
+      { label: 'Battery Voltage (V)', data: voltageData, borderColor: '#007bff', backgroundColor: 'rgba(0,123,255,0.1)', tension: 0.3, yAxisID: 'yVoltage', fill: true },
+      { label: 'Battery Damage Risk', data: damageData, borderColor: 'red', backgroundColor: 'red', showLine: false, pointRadius: 4, yAxisID: 'yVoltage' }
+    );
+  }
+
+  datasets.push({
+    label: 'Battery Current (mA)',
+    data: days > 15 ? currentDaily : currentData,
+    borderColor: 'orange',
+    backgroundColor: 'rgba(255,165,0,0.1)',
+    tension: 0.3,
+    yAxisID: 'yCurrent',
+    fill: false
+  });
+
+  if (days <= 15) {
+    datasets.push(
+      { type: 'bar', label: 'Direct Sun', data: sunData, backgroundColor: 'rgba(255,255,0,0.3)', borderWidth: 0, yAxisID: 'yLED' },
+      { type: 'bar', label: 'Indirect Sun', data: indirectData, backgroundColor: 'rgba(200,200,0,0.3)', borderWidth: 0, yAxisID: 'yLED' },
+      { type: 'bar', label: 'Morning Light', data: morningData, backgroundColor: 'rgba(173,216,230,0.3)', borderWidth: 0, yAxisID: 'yLED' },
+      { type: 'bar', label: 'Daylight', data: dayData, backgroundColor: 'rgba(255,165,0,0.3)', borderWidth: 0, yAxisID: 'yLED' },
+      { type: 'bar', label: 'LED On', data: ledData, backgroundColor: 'rgba(0,255,255,0.3)', borderWidth: 0, yAxisID: 'yLED' }
+    );
+  }
+
   chart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: labels,
-      datasets: [
-        {
-          label: 'Battery SoC (%)',
-          data: socData,
-          borderColor: '#28a745',
-          backgroundColor: 'rgba(40,167,69,0.1)',
-          tension: 0.3,
-          yAxisID: 'ySoC',
-          fill: true,
-          pointBackgroundColor: socColors
-        },
-        {
-          label: 'Battery Voltage (V)',
-          data: voltageData,
-          borderColor: '#007bff',
-          backgroundColor: 'rgba(0,123,255,0.1)',
-          tension: 0.3,
-          yAxisID: 'yVoltage',
-          fill: true
-        },
-        {
-          label: 'Battery Damage Risk',
-          data: damageData,
-          borderColor: 'red',
-          backgroundColor: 'red',
-          showLine: false,
-          pointRadius: 4,
-          yAxisID: 'yVoltage'
-        },
-        {
-          type: 'bar',
-          label: 'Direct Sun',
-          data: sunData,
-          backgroundColor: 'rgba(255,255,0,0.3)',
-          borderWidth: 0,
-          yAxisID: 'yLED'
-        },
-        {
-          type: 'bar',
-          label: 'Indirect Sun',
-          data: indirectData,
-          backgroundColor: 'rgba(200,200,0,0.3)',
-          borderWidth: 0,
-          yAxisID: 'yLED'
-        },
-        {
-          type: 'bar',
-          label: 'Morning Light',
-          data: morningData,
-          backgroundColor: 'rgba(173,216,230,0.3)',
-          borderWidth: 0,
-          yAxisID: 'yLED'
-        },
-        {
-          type: 'bar',
-          label: 'Daylight',
-          data: dayData,
-          backgroundColor: 'rgba(255,165,0,0.3)',
-          borderWidth: 0,
-          yAxisID: 'yLED'
-        },
-        {
-          type: 'bar',
-          label: 'LED On',
-          data: ledData,
-          backgroundColor: 'rgba(0,255,255,0.3)',
-          borderWidth: 0,
-          yAxisID: 'yLED'
-        }
-      ]
+      labels: labelsForChart,
+      datasets: datasets
     },
     options: {
       responsive: true,
       scales: {
         x: {
-          title: { display: true, text: 'Time (Hour × Day)' },
+          title: { display: true, text: days > 15 ? 'Day' : 'Time (Hour × Day)' },
           ticks: { maxTicksLimit: 24 * days }
         },
         ySoC: {
@@ -387,6 +381,15 @@ function simulate() {
           max: cells * 1.6,
           title: { display: true, text: 'Battery Voltage (V)' },
           grid: { drawOnChartArea: false }
+        },
+        yCurrent: {
+          type: 'linear',
+          position: 'right',
+          min: -maxCurrent,
+          max: maxCurrent,
+          title: { display: true, text: 'Battery Current (mA)' },
+          grid: { drawOnChartArea: false },
+          offset: true
         },
         yLED: {
           type: 'linear',
