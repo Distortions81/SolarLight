@@ -335,7 +335,7 @@ let chartLong;
 
       const cellV = Math.min(
         maxCellV,
-        1.0 + 0.35 * (soc / 100) + 0.01 * overCharge
+        0.9 + 0.7 * (soc / 100) + 0.01 * overCharge
       );
       const batteryV = cells * cellV;
       voltageData.push(batteryV);
@@ -364,7 +364,7 @@ let chartLong;
       dayData.push(isDay && !isSun && !isIndirect ? 1 : 0);
       morningData.push(isMorning ? 1 : 0);
 
-      const ledOn = isNight && batteryV > cells * boostCutoff;
+      const ledOn = isNight && batteryV > cells * boostCutoff && soc > 0;
       ledData.push(ledOn ? 1 : 0);
       let ledCurrent = 0;
       let brightnessPct = 0;
