@@ -154,6 +154,8 @@ function simulate() {
   const degSolar = parseFloat(document.getElementById("degSolar").value) / 100;
   const chemistry = document.getElementById("chemistry").value;
   const minCellV = chemistry === "NiCad" ? 0.9 : 1.0;
+  const overChargeV = chemistry === "NiCad" ? 1.55 : 1.45;
+  const maxCellV = chemistry === "NiCad" ? 1.65 : 1.55;
   const damageData = [];
 
   let soc = initialSoC;
@@ -165,7 +167,7 @@ function simulate() {
 
   // LED power at 1.2V baseline
   const ledPower_mW = 1.2 * ledNominalCurrent;
-  const overChargeV = 1.45;
+  let overCharge = 0;
 
   for (let day = 0; day < days; day++) {
     if (day > 0 && enableDeg) {
@@ -178,8 +180,11 @@ function simulate() {
       labels.push(`Day ${day + 1}, ${hour}:00`);
       socData.push(soc);
 
-      // Battery voltage estimate (1.0V to 1.35V per cell)
-      const cellV = 1.0 + 0.35 * (soc / 100);
+      // Battery voltage estimate with overcharge handling
+      const cellV = Math.min(
+        maxCellV,
+        1.0 + 0.35 * (soc / 100) + 0.01 * overCharge
+      );
       const batteryV = cells * cellV;
       voltageData.push(batteryV);
       damageData.push((batteryV > cells * overChargeV || batteryV < cells * minCellV) ? batteryV : null);
@@ -224,7 +229,17 @@ function simulate() {
       delta_mAh -= (capacity * selfDischarge) / 24;
 
       const delta_soc = (delta_mAh / capacity) * 100;
-      soc = Math.max(0, Math.min(100, soc + delta_soc));
+      let totalCharge = soc + overCharge + delta_soc;
+      if (totalCharge >= 100) {
+        soc = 100;
+        overCharge = totalCharge - 100;
+      } else if (totalCharge >= 0) {
+        soc = totalCharge;
+        overCharge = 0;
+      } else {
+        soc = 0;
+        overCharge = 0;
+      }
     }
   }
 
