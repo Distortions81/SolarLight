@@ -214,6 +214,12 @@
 </div>
 
 <div class="field">
+<label for="ledEff">LED Efficacy (lm/W)</label>
+<input type="number" id="ledEff" value="80">
+<small class="note">Typical white LED efficacy</small>
+</div>
+
+<div class="field">
 <label for="boostCutoff">Boost Converter Cutoff (V/cell)</label>
 <input type="number" id="boostCutoff" value="0.95" step="any">
 <small class="note">LED driver stops below this voltage</small>
@@ -243,6 +249,7 @@ let chartLong;
   const boostCutoff = parseFloat(document.getElementById("boostCutoff").value);
   const ledNominalCurrent = parseFloat(document.getElementById("ledCurrent").value);
   const driverEff = parseFloat(document.getElementById("driverEff").value) / 100;
+  const ledEfficacy = parseFloat(document.getElementById("ledEff").value);
   const days = simDays;
   let voc = parseFloat(document.getElementById("voc").value);
   let isc = parseFloat(document.getElementById("isc").value);
@@ -270,6 +277,7 @@ let chartLong;
   const indirectData = [];
   const dayData = [];
   const morningData = [];
+  const lumenData = [];
   const currentData = [];
   const currentHigh = [];
   const currentLow = [];
@@ -284,6 +292,7 @@ let chartLong;
   const indirectFactor = 0.1;
 
   const ledPower_mW = 1.5 * ledNominalCurrent;
+  const lumens = (ledPower_mW * ledEfficacy) / 1000;
   let overCharge = 0;
 
   for (let day = 0; day < days; day++) {
@@ -335,6 +344,7 @@ let chartLong;
 
       const ledOn = isNight && batteryV > cells * boostCutoff;
       ledData.push(ledOn ? 1 : 0);
+      lumenData.push(ledOn ? lumens : 0);
 
       if (isSun || isIndirect || isDay || isMorning) {
         let intensity = 0;
@@ -452,6 +462,9 @@ let chartLong;
       { type: 'bar', label: 'Daylight', data: dayData, backgroundColor: 'rgba(255,165,0,0.3)', borderWidth: 0, yAxisID: 'yLED' },
       { type: 'bar', label: 'LED On', data: ledData, backgroundColor: 'rgba(0,255,255,0.3)', borderWidth: 0, yAxisID: 'yLED' }
     );
+    datasets.push(
+      { label: 'LED Lumens', data: lumenData, borderColor: 'purple', backgroundColor: 'rgba(128,0,128,0.1)', tension: 0.3, yAxisID: 'yLumens', fill: false }
+    );
   }
 
   return new Chart(ctx, {
@@ -496,6 +509,14 @@ let chartLong;
           display: false,
           min: 0,
           max: 1
+        },
+        yLumens: {
+          type: 'linear',
+          position: 'right',
+          min: 0,
+          max: lumens,
+          title: { display: true, text: 'LED Lumens' },
+          grid: { drawOnChartArea: false }
         }
       }
     }
