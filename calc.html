@@ -61,7 +61,7 @@
 <h1>Solar Garden Light Sim</h1>
 
 <canvas id="chart"></canvas>
-<h2>5x Time</h2>100x
+<h2>4x Time</h2>100x
 <canvas id="chartMid"></canvas>
 <h2>400x Time</h2>
 <canvas id="chartLong"></canvas>
@@ -547,7 +547,7 @@ let chartLong;
 function simulate() {
   const baseDays = Math.min(1200, parseInt(document.getElementById('days').value));
   chart = runSim(baseDays, 'chart', chart);
-  chartMid = runSim(baseDays * 5, 'chartMid', chartMid);
+  chartMid = runSim(baseDays * 4, 'chartMid', chartMid);
   chartLong = runSim(baseDays * 400, 'chartLong', chartLong);
 }
 
