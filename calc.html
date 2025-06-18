@@ -378,49 +378,59 @@ let chartLong;
       dayData.push(isDay && !isSun && !isIndirect ? 1 : 0);
       morningData.push(isMorning ? 1 : 0);
 
-      const ledOn = nightFraction > 0 && batteryV > cells * boostCutoff && soc > 0;
-      ledData.push(ledOn ? nightFraction : 0);
+      let ledOnFraction = 0;
       let ledCurrent = 0;
       let brightnessPct = 0;
-      if (ledOn) {
+      const canRunLED =
+        capacity > 0 &&
+        nightFraction > 0 &&
+        batteryV > cells * boostCutoff &&
+        soc > 0;
+      if (canRunLED) {
         const vRatio = batteryV / (cells * ledVoltageRef);
         const curve = Math.pow(Math.min(1, vRatio), ledVoltExp);
         ledCurrent = ledNominalCurrent * curve;
+        const batteryCurrent = ledCurrent / driverEff;
         const physBright = Math.min(1, curve * ledBrightFactor);
         brightnessPct = Math.pow(physBright, ledGamma) * 100;
+        const available = ((soc + overCharge) / 100) * capacity;
+        ledOnFraction = Math.min(nightFraction, available / batteryCurrent);
       }
+      ledData.push(ledOnFraction);
       brightData.push(brightnessPct);
 
-      if (isSun || isIndirect || isDay || isMorning) {
-        let intensity = 0;
-        if (isSun) {
-          intensity = 1;
-        } else if (isIndirect) {
-          intensity = indirectFactor;
-        } else if (isDay) {
-          intensity = dayFactor;
-        }
-        if (isMorning) intensity = Math.max(intensity, morningFactor);
-
-        if (intensity > 0) {
-          const vLoad = batteryV + diodeDrop;
-          if (vLoad < voc) {
-            const pMax = voc * isc * ff * intensity;
-            const vmpp = voc * 0.8;
-            const impp = pMax / vmpp;
-            let solarCurrent;
-            if (vLoad <= vmpp) {
-              solarCurrent = pMax / vLoad;
-            } else {
-              solarCurrent = impp * (1 - (vLoad - vmpp) / (voc - vmpp));
-            }
-            solarCurrent = Math.max(0, Math.min(isc * intensity, solarCurrent));
-            delta_mAh = solarCurrent * chargeEff;
+      if (capacity > 0) {
+        if (isSun || isIndirect || isDay || isMorning) {
+          let intensity = 0;
+          if (isSun) {
+            intensity = 1;
+          } else if (isIndirect) {
+            intensity = indirectFactor;
+          } else if (isDay) {
+            intensity = dayFactor;
           }
+          if (isMorning) intensity = Math.max(intensity, morningFactor);
+
+          if (intensity > 0) {
+            const vLoad = batteryV + diodeDrop;
+            if (vLoad < voc) {
+              const pMax = voc * isc * ff * intensity;
+              const vmpp = voc * 0.8;
+              const impp = pMax / vmpp;
+              let solarCurrent;
+              if (vLoad <= vmpp) {
+                solarCurrent = pMax / vLoad;
+              } else {
+                solarCurrent = impp * (1 - (vLoad - vmpp) / (voc - vmpp));
+              }
+              solarCurrent = Math.max(0, Math.min(isc * intensity, solarCurrent));
+              delta_mAh = solarCurrent * chargeEff;
+            }
+          }
+        } else if (ledOnFraction > 0) {
+          const batteryCurrent = ledCurrent / driverEff;
+          delta_mAh = -batteryCurrent * ledOnFraction;
         }
-      } else if (ledOn) {
-        const batteryCurrent = ledCurrent / driverEff;
-        delta_mAh = -batteryCurrent * nightFraction;
       }
 
       delta_mAh -= (capacity * selfDischarge) / 24;
