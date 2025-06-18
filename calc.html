@@ -600,6 +600,7 @@ let chartLong;
     options: {
       responsive: true,
       elements: { point: { radius: 0 } },
+      interaction: { mode: 'index', intersect: false },
       scales: {
         x: {
           title: { display: true, text: days > 30 ? 'Day' : 'Time (Hour × Day)' },
