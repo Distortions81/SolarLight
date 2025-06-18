@@ -213,8 +213,9 @@
 let chart;
 let chartLong;
 
-function runSim(simDays, canvasId, oldChart) {
-  let capacity = parseFloat(document.getElementById("capacity").value);
+  function runSim(simDays, canvasId, oldChart) {
+    let capacity = parseFloat(document.getElementById("capacity").value);
+    const initialCapacity = capacity;
   const initialSoC = parseFloat(document.getElementById("soc").value);
   const cells = parseInt(document.getElementById("cells").value);
   const sunHours = parseInt(document.getElementById("sunHours").value);
@@ -270,14 +271,19 @@ function runSim(simDays, canvasId, oldChart) {
 
   for (let day = 0; day < days; day++) {
     if (day > 0 && enableDeg) {
+      const prevCap = capacity;
       capacity *= (1 - degBattery);
       voc *= (1 - degSolar);
       isc *= (1 - degSolar);
+      const stored = ((soc + overCharge) / 100) * prevCap;
+      const adjPct = (stored / capacity) * 100;
+      soc = Math.min(100, adjPct);
+      overCharge = Math.max(0, adjPct - 100);
     }
 
     for (let hour = 0; hour < 24; hour++) {
       labels.push(`Day ${day + 1}, ${hour}:00`);
-      socData.push(soc);
+      socData.push(Math.min(100, ((soc + overCharge) * capacity) / initialCapacity));
 
       const cellV = Math.min(
         maxCellV,
@@ -360,9 +366,14 @@ function runSim(simDays, canvasId, oldChart) {
         overCharge = 0;
       }
       currentData.push(delta_mAh);
-      if (enableDeg && inDamageRange) {
-        capacity *= (1 - damageHourDegrade);
-      }
+        if (enableDeg && inDamageRange) {
+          const prevCap = capacity;
+          capacity *= (1 - damageHourDegrade);
+          const stored = ((soc + overCharge) / 100) * prevCap;
+          const adjPct = (stored / capacity) * 100;
+          soc = Math.min(100, adjPct);
+          overCharge = Math.max(0, adjPct - 100);
+        }
     }
   }
 
