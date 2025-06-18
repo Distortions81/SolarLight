@@ -72,6 +72,10 @@
 <input type="number" id="sunHours" value="4">
 <small class="note">Commonly 3–6 hours</small>
 
+<label for="morningHours">Indirect Morning Light Hours</label>
+<input type="number" id="morningHours" value="1" min="0">
+<small class="note">Early dawn ambient light</small>
+
 <label for="nightHours">Night Illumination Hours</label>
 <input type="number" id="nightHours" value="8">
 <small class="note">Usually 8–12 hours</small>
@@ -136,6 +140,7 @@ function simulate() {
   const initialSoC = parseFloat(document.getElementById("soc").value);
   const cells = parseInt(document.getElementById("cells").value);
   const sunHours = parseInt(document.getElementById("sunHours").value);
+  const morningHours = parseInt(document.getElementById("morningHours").value);
   const nightHours = parseInt(document.getElementById("nightHours").value);
   const sunrise = parseInt(document.getElementById("sunrise").value);
   const sunset = parseInt(document.getElementById("sunset").value);
@@ -165,6 +170,7 @@ function simulate() {
   const ledData = [];
   const sunData = [];
   const dayData = [];
+  const morningData = [];
   const labels = [];
 
   // LED power at 1.2V baseline
@@ -197,6 +203,10 @@ function simulate() {
       const directSunEnd = Math.min(sunset, sunrise + sunHours);
       const isSun = hour >= sunrise && hour < directSunEnd;
       const isDay = hour >= sunrise && hour < sunset;
+      const morningStart = sunrise - morningHours;
+      const isMorning = morningHours > 0 && (morningStart >= 0
+        ? (hour >= morningStart && hour < sunrise)
+        : (hour >= morningStart + 24 || hour < sunrise));
       const nightEnd = (sunset + nightHours) % 24;
       const isNight = nightEnd > sunset ?
         (hour >= sunset && hour < nightEnd) :
@@ -204,6 +214,7 @@ function simulate() {
 
       sunData.push(isSun ? 1 : 0);
       dayData.push(isDay && !isSun ? 1 : 0);
+      morningData.push(isMorning ? 1 : 0);
 
       const ledOn = isNight && batteryV > cells * boostCutoff;
       ledData.push(ledOn ? 1 : 0);
@@ -291,6 +302,14 @@ function simulate() {
           label: 'Direct Sun',
           data: sunData,
           backgroundColor: 'rgba(255,255,0,0.3)',
+          borderWidth: 0,
+          yAxisID: 'yLED'
+        },
+        {
+          type: 'bar',
+          label: 'Morning Light',
+          data: morningData,
+          backgroundColor: 'rgba(173,216,230,0.3)',
           borderWidth: 0,
           yAxisID: 'yLED'
         },
