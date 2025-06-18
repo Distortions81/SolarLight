@@ -61,9 +61,9 @@
 <h1>Solar Garden Light Sim</h1>
 
 <canvas id="chart"></canvas>
-<h2>10x Time</h2>
+<h2>5x Time</h2>100x
 <canvas id="chartMid"></canvas>
-<h2>100x Time</h2>
+<h2>400x Time</h2>
 <canvas id="chartLong"></canvas>
 <div class="form-grid">
 
@@ -105,9 +105,8 @@
 <small class="note">Average sunset ~6pm</small>
 </div>
 
-<div class="field">
-<label for="days">Days to Simulate</label>
-<input type="number" id="days" value="4" min="1" max="600">
+<label for="days">Days at max zoom (top chart)</label>
+<input type="number" id="days" value="2" min="1" max="15">
 </div>
 
 <h3 class="full">Battery</h3>
@@ -426,7 +425,7 @@ let chartLong;
     }
   }
 
-  if (days > 15) {
+  if (days > 30) {
     for (let day = 0; day < days; day++) {
       const start = day * 24;
       const end = start + 24;
@@ -441,16 +440,16 @@ let chartLong;
     }
   }
 
-  const curArray = days > 15 ? currentHigh.concat(currentLow) : currentData;
+  const curArray = days > 30 ? currentHigh.concat(currentLow) : currentData;
   const maxCurrent = curArray.reduce((m, v) => Math.max(m, Math.abs(v)), 0) || 1;
 
   if (oldChart) oldChart.destroy();
   const ctx = document.getElementById(canvasId).getContext('2d');
 
-  const labelsForChart = days > 15 ? labelsDaily : labels;
+  const labelsForChart = days > 30 ? labelsDaily : labels;
   const datasets = [];
 
-  if (days > 15) {
+  if (days > 30) {
     datasets.push(
       { label: 'Battery SoC High (%)', data: socHigh, borderColor: '#28a745', tension: 0.3, yAxisID: 'ySoC', fill: false },
       { label: 'Battery SoC Low (%)', data: socLow, borderColor: '#28a745', tension: 0.3, yAxisID: 'ySoC', fill: '-1', backgroundColor: 'rgba(40,167,69,0.1)' },
@@ -467,7 +466,7 @@ let chartLong;
     );
   }
 
-  if (days <= 15) {
+  if (days <= 30) {
     datasets.push({
       label: 'Battery Current (mA)',
       data: currentData,
@@ -499,7 +498,7 @@ let chartLong;
       responsive: true,
       scales: {
         x: {
-          title: { display: true, text: days > 15 ? 'Day' : 'Time (Hour × Day)' },
+          title: { display: true, text: days > 30 ? 'Day' : 'Time (Hour × Day)' },
           ticks: { maxTicksLimit: 24 * days }
         },
         ySoC: {
@@ -513,7 +512,7 @@ let chartLong;
           type: 'linear',
           position: 'right',
           min: cells * 0.9,
-          max: cells * 1.8,
+          max: cells * 1.6,
           title: { display: true, text: 'Battery Voltage (V)' },
           grid: { drawOnChartArea: false }
         },
@@ -548,8 +547,8 @@ let chartLong;
 function simulate() {
   const baseDays = Math.min(1200, parseInt(document.getElementById('days').value));
   chart = runSim(baseDays, 'chart', chart);
-  chartMid = runSim(baseDays * 10, 'chartMid', chartMid);
-  chartLong = runSim(baseDays * 100, 'chartLong', chartLong);
+  chartMid = runSim(baseDays * 5, 'chartMid', chartMid);
+  chartLong = runSim(baseDays * 400, 'chartLong', chartLong);
 }
 
 function setChemistryDefaults() {
