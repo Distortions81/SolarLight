@@ -61,7 +61,7 @@
 <h1>Solar Garden Light Sim</h1>
 
 <canvas id="chart"></canvas>
-<h2>200x Time</h2>
+<h2>100x Time</h2>
 <canvas id="chartLong"></canvas>
 <div class="form-grid">
 
@@ -80,7 +80,7 @@
 </div>
 
 <div class="field">
-<label for="morningHours">Indirect Morning Light Hours</label>
+<label for="morningHours">Indirect Morning Hours</label>
 <input type="number" id="morningHours" value="1" min="0" step="any">
 <small class="note">Early dawn ambient light</small>
 </div>
@@ -105,7 +105,7 @@
 
 <div class="field">
 <label for="days">Days at max zoom (top chart)</label>
-<input type="number" id="days" value="2" min="1" max="15">
+<input type="number" id="days" value="5" min="1" max="30">
 </div>
 
 <h3 class="full">Battery</h3>
@@ -145,25 +145,21 @@
 <div class="field">
 <label for="degBattery">Battery Capacity Loss per Day (%)</label>
 <input type="number" id="degBattery" value="0.01" step="any">
-<small class="note">Typical loses ~0.01% per day</small>
 </div>
 
 <div class="field">
 <label for="degCycle">Battery Capacity Loss per Cycle (%)</label>
 <input type="number" id="degCycle" value="0.02" step="any">
-<small class="note">0.05% NiMH, 0.02% NiCad</small>
 </div>
 
 <div class="field">
 <label for="damageHighV">Damage High Voltage (V/cell)</label>
 <input type="number" id="damageHighV" value="1.400" step="any">
-<small class="note">NiMH ≈1.4V, NiCad ≈1.40V</small>
 </div>
 
 <div class="field">
 <label for="damageLowV">Damage Low Voltage (V/cell)</label>
 <input type="number" id="damageLowV" value="1.0" step="any">
-<small class="note">NiMH ≈1.0V, NiCad ≈1.0V</small>
 </div>
 
 <div class="field">
@@ -202,7 +198,6 @@
 <div class="field">
 <label for="degSolar">Solar Cell Power Loss per Day (%)</label>
 <input type="number" id="degSolar" value="0.01" step="any">
-<small class="note">Panel aging ~0.01% per day</small>
 </div>
 
 <h3 class="full">Circuitry</h3>
@@ -233,7 +228,7 @@
 
 <div class="field">
 <label for="boostCutoff">Boost Converter Cutoff (V/cell)</label>
-<input type="number" id="boostCutoff" value="0.95" step="any">
+<input type="number" id="boostCutoff" value="1.1" step="any">
 <small class="note">LED driver stops below this voltage</small>
 </div>
 
@@ -652,7 +647,7 @@ let chartLong;
 function simulate() {
   const baseDays = Math.min(1200, parseInt(document.getElementById('days').value));
   chart = runSim(baseDays, 'chart', chart, false);
-  chartLong = runSim(baseDays * 200, 'chartLong', chartLong, true);
+  chartLong = runSim(baseDays * 100, 'chartLong', chartLong, true);
 }
 
 function setChemistryDefaults() {
