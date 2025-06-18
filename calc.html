@@ -61,8 +61,6 @@
 <h1>Solar Garden Light Sim</h1>
 
 <canvas id="chart"></canvas>
-<h2>3x Time</h2>
-<canvas id="chartMid"></canvas>
 <h2>200x Time</h2>
 <canvas id="chartLong"></canvas>
 <div class="form-grid">
@@ -247,7 +245,6 @@
 
 <script>
 let chart;
-let chartMid;
 let chartLong;
 
   function hourFraction(start, duration, hour) {
@@ -655,7 +652,6 @@ let chartLong;
 function simulate() {
   const baseDays = Math.min(1200, parseInt(document.getElementById('days').value));
   chart = runSim(baseDays, 'chart', chart, false);
-  chartMid = runSim(baseDays * 3, 'chartMid', chartMid, false);
   chartLong = runSim(baseDays * 200, 'chartLong', chartLong, true);
 }
 
