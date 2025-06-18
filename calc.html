@@ -50,8 +50,8 @@
 <canvas id="chart"></canvas>
 
 <label for="capacity">Battery Capacity (mAh)</label>
-<input type="number" id="capacity" value="600">
-<small class="note">Typical AA/AAA NiMH: 600–1000 mAh</small>
+<input type="number" id="capacity" value="300">
+<small class="note">Typical AA/AAA NiMH: 300,600 or 1000 mAh</small>
 
 <label for="soc">Initial SoC (%)</label>
 <input type="number" id="soc" value="70" min="0" max="100">
@@ -73,7 +73,7 @@
 <small class="note">Commonly 3–6 hours</small>
 
 <label for="indirectHours">Indirect Sunlight Hours</label>
-<input type="number" id="indirectHours" value="0" min="0">
+<input type="number" id="indirectHours" value="1" min="0">
 <small class="note">Shaded or off-angle sun</small>
 
 <label for="morningHours">Indirect Morning Light Hours</label>
@@ -85,7 +85,7 @@
 <small class="note">Usually 8–12 hours</small>
 
 <label for="ledCurrent">LED Nominal Current @ 1.2V (mA)</label>
-<input type="number" id="ledCurrent" value="20">
+<input type="number" id="ledCurrent" value="30">
 <small class="note">Typical white LED current: ≈20 mA</small>
 <label for="driverEff">LED Driver Efficiency (%)</label>
 <input type="number" id="driverEff" value="70" min="0" max="100">
@@ -111,7 +111,7 @@
 <input type="number" id="voc" value="2.0" step="any">
 
 <label for="isc">Short-Circuit Current (Isc) [mA]</label>
-<input type="number" id="isc" value="125">
+<input type="number" id="isc" value="150">
 
 <label for="ff">Fill Factor (FF, 0–1)</label>
 <input type="number" id="ff" value="0.65" step="any">
@@ -384,7 +384,7 @@ function simulate() {
           type: 'linear',
           position: 'right',
           min: cells * 1.0,
-          max: cells * 1.4,
+          max: cells * 1.6,
           title: { display: true, text: 'Battery Voltage (V)' },
           grid: { drawOnChartArea: false }
         },
