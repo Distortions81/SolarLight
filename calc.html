@@ -61,6 +61,8 @@
 <h1>Realistic Solar Battery Simulation</h1>
 
 <canvas id="chart"></canvas>
+<h2>100x Time</h2>
+<canvas id="chartLong"></canvas>
 <div class="form-grid">
 
 <div class="field">
@@ -199,8 +201,9 @@
 
 <script>
 let chart;
+let chartLong;
 
-function simulate() {
+function runSim(simDays, canvasId, oldChart) {
   let capacity = parseFloat(document.getElementById("capacity").value);
   const initialSoC = parseFloat(document.getElementById("soc").value);
   const cells = parseInt(document.getElementById("cells").value);
@@ -213,7 +216,7 @@ function simulate() {
   const boostCutoff = parseFloat(document.getElementById("boostCutoff").value);
   const ledNominalCurrent = parseFloat(document.getElementById("ledCurrent").value);
   const driverEff = parseFloat(document.getElementById("driverEff").value) / 100;
-  const days = Math.min(1200, parseInt(document.getElementById("days").value));
+  const days = simDays;
   let voc = parseFloat(document.getElementById("voc").value);
   let isc = parseFloat(document.getElementById("isc").value);
   const ff = parseFloat(document.getElementById("ff").value);
@@ -246,14 +249,10 @@ function simulate() {
   const socLow = [];
   const voltageHigh = [];
   const voltageLow = [];
-  // Non-direct light factors based on typical cloudy-day output
-  // Solar panels produce around 10–25% of normal power when clouds block the sun
-  // See: duckduckgo result snippet mentioning 10–25% output on cloudy days
-  const dayFactor = 0.2; // daylight but not direct sun
-  const morningFactor = 0.05; // very low early morning light
-  const indirectFactor = 0.1; // shaded or indirect sunlight
+  const dayFactor = 0.2;
+  const morningFactor = 0.05;
+  const indirectFactor = 0.1;
 
-  // LED power at 1.5V baseline
   const ledPower_mW = 1.5 * ledNominalCurrent;
   let overCharge = 0;
 
@@ -268,7 +267,6 @@ function simulate() {
       labels.push(`Day ${day + 1}, ${hour}:00`);
       socData.push(soc);
 
-      // Battery voltage estimate with overcharge handling
       const cellV = Math.min(
         maxCellV,
         1.0 + 0.35 * (soc / 100) + 0.01 * overCharge
@@ -290,9 +288,9 @@ function simulate() {
         ? (hour >= morningStart && hour < sunrise)
         : (hour >= morningStart + 24 || hour < sunrise));
       const nightEnd = (sunset + nightHours) % 24;
-      const isNight = nightEnd > sunset ?
-        (hour >= sunset && hour < nightEnd) :
-        (hour >= sunset || hour < nightEnd);
+      const isNight = nightEnd > sunset
+        ? (hour >= sunset && hour < nightEnd)
+        : (hour >= sunset || hour < nightEnd);
 
       sunData.push(isSun ? 1 : 0);
       indirectData.push(isIndirect ? 1 : 0);
@@ -316,29 +314,24 @@ function simulate() {
         if (intensity > 0) {
           const vLoad = batteryV + diodeDrop;
           if (vLoad < voc) {
-            const pMax = voc * isc * ff * intensity; // mW scaled by light level
-            const vmpp = voc * 0.8; // approximate voltage at MPP
-            const impp = pMax / vmpp; // current at MPP
+            const pMax = voc * isc * ff * intensity;
+            const vmpp = voc * 0.8;
+            const impp = pMax / vmpp;
             let solarCurrent;
             if (vLoad <= vmpp) {
-              // operate near MPP for lower battery voltage
               solarCurrent = pMax / vLoad;
             } else {
-              // linear drop of current above MPP toward Voc
               solarCurrent = impp * (1 - (vLoad - vmpp) / (voc - vmpp));
             }
             solarCurrent = Math.max(0, Math.min(isc * intensity, solarCurrent));
-
-            delta_mAh = solarCurrent * chargeEff; // 1 hour
+            delta_mAh = solarCurrent * chargeEff;
           }
         }
       } else if (ledOn) {
-        // Adjust LED current to maintain constant power
         const actualLEDCurrent = batteryV > 0 ? (ledPower_mW / driverEff) / batteryV : 0;
-        delta_mAh = -actualLEDCurrent; // 1 hour
+        delta_mAh = -actualLEDCurrent;
       }
 
-      // self discharge (per hour)
       delta_mAh -= (capacity * selfDischarge) / 24;
 
       const delta_soc = (delta_mAh / capacity) * 100;
@@ -374,8 +367,8 @@ function simulate() {
   const curArray = days > 15 ? currentDaily : currentData;
   const maxCurrent = curArray.reduce((m, v) => Math.max(m, Math.abs(v)), 0) || 1;
 
-  const ctx = document.getElementById("chart").getContext("2d");
-  if (chart) chart.destroy();
+  if (oldChart) oldChart.destroy();
+  const ctx = document.getElementById(canvasId).getContext('2d');
 
   const labelsForChart = days > 15 ? labelsDaily : labels;
   const datasets = [];
@@ -415,7 +408,7 @@ function simulate() {
     );
   }
 
-  chart = new Chart(ctx, {
+  return new Chart(ctx, {
     type: 'line',
     data: {
       labels: labelsForChart,
@@ -463,12 +456,19 @@ function simulate() {
   });
 }
 
+function simulate() {
+  const baseDays = Math.min(1200, parseInt(document.getElementById('days').value));
+  chart = runSim(baseDays, 'chart', chart);
+  chartLong = runSim(baseDays * 100, 'chartLong', chartLong);
+}
+
 window.addEventListener('load', () => {
   simulate();
   document.querySelectorAll('input, select').forEach(el =>
     el.addEventListener('input', simulate));
 });
 </script>
+
 
 </body>
 </html>
