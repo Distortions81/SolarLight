@@ -290,6 +290,8 @@ let chartLong;
   const currentData = [];
   const currentHigh = [];
   const currentLow = [];
+  const ledHoursDaily = [];
+  const brightAvgDaily = [];
   const labels = [];
   const labelsDaily = [];
   const socHigh = [];
@@ -437,11 +439,23 @@ let chartLong;
       const slice = currentData.slice(start, end);
       currentHigh.push(Math.max(...slice));
       currentLow.push(Math.min(...slice));
+      ledHoursDaily.push(ledData.slice(start, end).reduce((a, v) => a + v, 0));
+      const bSlice = brightData.slice(start, end);
+      let sum = 0;
+      let count = 0;
+      for (let i = 0; i < bSlice.length; i++) {
+        if (ledData[start + i]) {
+          sum += bSlice[i];
+          count++;
+        }
+      }
+      brightAvgDaily.push(count ? sum / count : 0);
     }
   }
 
   const curArray = days > 30 ? currentHigh.concat(currentLow) : currentData;
   const maxCurrent = curArray.reduce((m, v) => Math.max(m, Math.abs(v)), 0) || 1;
+  const maxLEDHours = days > 30 ? Math.max(1, ...ledHoursDaily) : 1;
 
   if (oldChart) oldChart.destroy();
   const ctx = document.getElementById(canvasId).getContext('2d');
@@ -456,7 +470,9 @@ let chartLong;
       { label: 'Battery Voltage High (V)', data: voltageHigh, borderColor: '#007bff', tension: 0.3, yAxisID: 'yVoltage', fill: false },
       { label: 'Battery Voltage Low (V)', data: voltageLow, borderColor: '#007bff', tension: 0.3, yAxisID: 'yVoltage', fill: '-1', backgroundColor: 'rgba(0,123,255,0.1)' },
       { label: 'Battery Current High (mA)', data: currentHigh, borderColor: 'orange', tension: 0.3, yAxisID: 'yCurrent', fill: false },
-      { label: 'Battery Current Low (mA)', data: currentLow, borderColor: 'orange', tension: 0.3, yAxisID: 'yCurrent', fill: '-1', backgroundColor: 'rgba(255,165,0,0.1)' }
+      { label: 'Battery Current Low (mA)', data: currentLow, borderColor: 'orange', tension: 0.3, yAxisID: 'yCurrent', fill: '-1', backgroundColor: 'rgba(255,165,0,0.1)' },
+      { label: 'LED Hours On', data: ledHoursDaily, borderColor: 'cyan', backgroundColor: 'rgba(0,255,255,0.2)', tension: 0.3, yAxisID: 'yLED', fill: false },
+      { label: 'LED Brightness Avg (%)', data: brightAvgDaily, borderColor: 'purple', backgroundColor: 'rgba(128,0,128,0.1)', tension: 0.3, yAxisID: 'yBright', fill: false }
     );
   } else {
     datasets.push(
@@ -527,9 +543,11 @@ let chartLong;
         },
         yLED: {
           type: 'linear',
-          display: false,
+          display: days > 30,
           min: 0,
-          max: 1
+          max: days > 30 ? maxLEDHours : 1,
+          title: days > 30 ? { display: true, text: 'LED Hours On' } : undefined,
+          grid: { drawOnChartArea: false }
         },
         yBright: {
           type: 'linear',
