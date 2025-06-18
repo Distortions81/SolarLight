@@ -65,6 +65,51 @@
 <canvas id="chartLong"></canvas>
 <div class="form-grid">
 
+<h3 class="full">Environmental</h3>
+
+<div class="field">
+<label for="sunHours">Direct Sunlight Hours</label>
+<input type="number" id="sunHours" value="4">
+<small class="note">Commonly 3–6 hours</small>
+</div>
+
+<div class="field">
+<label for="indirectHours">Indirect Sunlight Hours</label>
+<input type="number" id="indirectHours" value="1" min="0">
+<small class="note">Shaded or off-angle sun</small>
+</div>
+
+<div class="field">
+<label for="morningHours">Indirect Morning Light Hours</label>
+<input type="number" id="morningHours" value="1" min="0">
+<small class="note">Early dawn ambient light</small>
+</div>
+
+<div class="field">
+<label for="nightHours">Night Illumination Hours</label>
+<input type="number" id="nightHours" value="8">
+<small class="note">Usually 8–12 hours</small>
+</div>
+
+<div class="field">
+<label for="sunrise">Sunrise Hour (0–23)</label>
+<input type="number" id="sunrise" value="6" min="0" max="23">
+<small class="note">Average sunrise ~6am</small>
+</div>
+
+<div class="field">
+<label for="sunset">Sunset Hour (0–23)</label>
+<input type="number" id="sunset" value="18" min="1" max="23">
+<small class="note">Average sunset ~6pm</small>
+</div>
+
+<div class="field">
+<label for="days">Days to Simulate</label>
+<input type="number" id="days" value="4" min="1" max="600">
+</div>
+
+<h3 class="full">Battery</h3>
+
 <div class="field">
 <label for="capacity">Battery Capacity (mAh)</label>
 <input type="number" id="capacity" value="300">
@@ -93,64 +138,18 @@
 </div>
 
 <div class="field">
-<label for="sunHours">Direct Sunlight Hours</label>
-<input type="number" id="sunHours" value="4">
-<small class="note">Commonly 3–6 hours</small>
+<label for="selfDischarge">Self-Discharge Rate (%/day)</label>
+<input type="number" id="selfDischarge" value="3" min="0" step="any">
 </div>
 
 <div class="field">
-<label for="indirectHours">Indirect Sunlight Hours</label>
-<input type="number" id="indirectHours" value="1" min="0">
-<small class="note">Shaded or off-angle sun</small>
-</div>
-
-<div class="field">
-<label for="morningHours">Indirect Morning Light Hours</label>
-<input type="number" id="morningHours" value="1" min="0">
-<small class="note">Early dawn ambient light</small>
-</div>
-
-<div class="field">
-<label for="nightHours">Night Illumination Hours</label>
-<input type="number" id="nightHours" value="8">
-<small class="note">Usually 8–12 hours</small>
-</div>
-
-<div class="field">
-<label for="ledCurrent">LED Nominal Current @ 1.2V (mA)</label>
-<input type="number" id="ledCurrent" value="17">
-<small class="note">Typical white LED current: ≈20 mA</small>
-</div>
-<div class="field">
-<label for="driverEff">LED Driver Efficiency (%)</label>
-<input type="number" id="driverEff" value="70" min="0" max="100">
-<small class="note">Boost driver: 70–85%</small>
-</div>
-
-<div class="field">
-<label for="boostCutoff">Boost Converter Cutoff (V/cell)</label>
-<input type="number" id="boostCutoff" value="0.9" step="any">
-<small class="note">LED driver stops below this voltage</small>
-</div>
-
-<div class="field">
-<label for="sunrise">Sunrise Hour (0–23)</label>
-<input type="number" id="sunrise" value="6" min="0" max="23">
-<small class="note">Average sunrise ~6am</small>
-</div>
-
-<div class="field">
-<label for="sunset">Sunset Hour (0–23)</label>
-<input type="number" id="sunset" value="18" min="1" max="23">
-<small class="note">Average sunset ~6pm</small>
-</div>
-
-<div class="field">
-<label for="days">Days to Simulate</label>
-<input type="number" id="days" value="4" min="1" max="600">
+<label for="degBattery">Battery Capacity Loss per Day (%)</label>
+<input type="number" id="degBattery" value="0.05" step="any">
+<small class="note">Typical NiCad loses ~0.05% per day</small>
 </div>
 
 <h3 class="full">Solar Cell</h3>
+
 <div class="field">
 <label for="voc">Open-Circuit Voltage (Voc) [V]</label>
 <input type="number" id="voc" value="2.0" step="any">
@@ -177,22 +176,33 @@
 </div>
 
 <div class="field">
-<label for="selfDischarge">Self-Discharge Rate (%/day)</label>
-<input type="number" id="selfDischarge" value="3" min="0" step="any">
+<label for="degSolar">Solar Cell Power Loss per Day (%) (resin)</label>
+<input type="number" id="degSolar" value="0.02" step="any">
+<small class="note">Panel aging ~0.02% per day</small>
+</div>
+
+<h3 class="full">Circuitry</h3>
+
+<div class="field">
+<label for="ledCurrent">LED Nominal Current @ 1.2V (mA)</label>
+<input type="number" id="ledCurrent" value="17">
+<small class="note">Typical white LED current: ≈20 mA</small>
+</div>
+
+<div class="field">
+<label for="driverEff">LED Driver Efficiency (%)</label>
+<input type="number" id="driverEff" value="70" min="0" max="100">
+<small class="note">Boost driver: 70–85%</small>
+</div>
+
+<div class="field">
+<label for="boostCutoff">Boost Converter Cutoff (V/cell)</label>
+<input type="number" id="boostCutoff" value="0.9" step="any">
+<small class="note">LED driver stops below this voltage</small>
 </div>
 
 <div class="field">
 <label><input type="checkbox" id="enableDeg" checked> Simulate Component Degeneration</label>
-</div>
-<div class="field">
-<label for="degBattery">Battery Capacity Loss per Day (%)</label>
-<input type="number" id="degBattery" value="0.05" step="any">
-<small class="note">Typical NiCad loses ~0.05% per day</small>
-</div>
-<div class="field">
-<label for="degSolar">Solar Cell Power Loss per Day (%) (resin)</label>
-<input type="number" id="degSolar" value="0.02" step="any">
-<small class="note">Panel aging ~0.02% per day</small>
 </div>
 
 <button class="full" onclick="simulate()">Simulate</button>
@@ -243,7 +253,8 @@ function runSim(simDays, canvasId, oldChart) {
   const dayData = [];
   const morningData = [];
   const currentData = [];
-  const currentDaily = [];
+  const currentHigh = [];
+  const currentLow = [];
   const labels = [];
   const labelsDaily = [];
   const socHigh = [];
@@ -364,12 +375,13 @@ function runSim(simDays, canvasId, oldChart) {
       socLow.push(Math.min(...socData.slice(start, end)));
       voltageHigh.push(Math.max(...voltageData.slice(start, end)));
       voltageLow.push(Math.min(...voltageData.slice(start, end)));
-      const avgCur = currentData.slice(start, end).reduce((a, b) => a + b, 0) / 24;
-      currentDaily.push(avgCur);
+      const slice = currentData.slice(start, end);
+      currentHigh.push(Math.max(...slice));
+      currentLow.push(Math.min(...slice));
     }
   }
 
-  const curArray = days > 15 ? currentDaily : currentData;
+  const curArray = days > 15 ? currentHigh.concat(currentLow) : currentData;
   const maxCurrent = curArray.reduce((m, v) => Math.max(m, Math.abs(v)), 0) || 1;
 
   if (oldChart) oldChart.destroy();
@@ -383,7 +395,9 @@ function runSim(simDays, canvasId, oldChart) {
       { label: 'Battery SoC High (%)', data: socHigh, borderColor: '#28a745', tension: 0.3, yAxisID: 'ySoC', fill: false },
       { label: 'Battery SoC Low (%)', data: socLow, borderColor: '#28a745', tension: 0.3, yAxisID: 'ySoC', fill: false },
       { label: 'Battery Voltage High (V)', data: voltageHigh, borderColor: '#007bff', tension: 0.3, yAxisID: 'yVoltage', fill: false },
-      { label: 'Battery Voltage Low (V)', data: voltageLow, borderColor: '#007bff', tension: 0.3, yAxisID: 'yVoltage', fill: false }
+      { label: 'Battery Voltage Low (V)', data: voltageLow, borderColor: '#007bff', tension: 0.3, yAxisID: 'yVoltage', fill: false },
+      { label: 'Battery Current High (mA)', data: currentHigh, borderColor: 'orange', tension: 0.3, yAxisID: 'yCurrent', fill: false },
+      { label: 'Battery Current Low (mA)', data: currentLow, borderColor: 'orange', tension: 0.3, yAxisID: 'yCurrent', fill: false }
     );
   } else {
     datasets.push(
@@ -393,17 +407,16 @@ function runSim(simDays, canvasId, oldChart) {
     );
   }
 
-  datasets.push({
-    label: 'Battery Current (mA)',
-    data: days > 15 ? currentDaily : currentData,
-    borderColor: 'orange',
-    backgroundColor: 'rgba(255,165,0,0.1)',
-    tension: 0.3,
-    yAxisID: 'yCurrent',
-    fill: false
-  });
-
   if (days <= 15) {
+    datasets.push({
+      label: 'Battery Current (mA)',
+      data: currentData,
+      borderColor: 'orange',
+      backgroundColor: 'rgba(255,165,0,0.1)',
+      tension: 0.3,
+      yAxisID: 'yCurrent',
+      fill: false
+    });
     datasets.push(
       { type: 'bar', label: 'Direct Sun', data: sunData, backgroundColor: 'rgba(255,255,0,0.3)', borderWidth: 0, yAxisID: 'yLED' },
       { type: 'bar', label: 'Indirect Sun', data: indirectData, backgroundColor: 'rgba(200,200,0,0.3)', borderWidth: 0, yAxisID: 'yLED' },
