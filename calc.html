@@ -176,7 +176,7 @@
 </div>
 
 <div class="field">
-<label for="degSolar">Solar Cell Power Loss per Day (%) (resin)</label>
+<label for="degSolar">Solar Cell Power Loss per Day (%)</label>
 <input type="number" id="degSolar" value="0.02" step="any">
 <small class="note">Panel aging ~0.02% per day</small>
 </div>
@@ -449,7 +449,7 @@ function runSim(simDays, canvasId, oldChart) {
         yVoltage: {
           type: 'linear',
           position: 'right',
-          min: cells * 1.0,
+          min: cells * 0.9,
           max: cells * 1.8,
           title: { display: true, text: 'Battery Voltage (V)' },
           grid: { drawOnChartArea: false }
