@@ -61,7 +61,7 @@
 <h1>Solar Garden Light Sim</h1>
 
 <canvas id="chart"></canvas>
-<h2>4x Time</h2>100x
+<h2>3x Time</h2>
 <canvas id="chartMid"></canvas>
 <h2>400x Time</h2>
 <canvas id="chartLong"></canvas>
@@ -113,7 +113,7 @@
 
 <div class="field">
 <label for="capacity">Battery Capacity (mAh)</label>
-<input type="number" id="capacity" value="600">
+<input type="number" id="capacity" value="300">
 <small class="note">Typical AA/AAA NiMH: 300,600 or 1000 mAh</small>
 </div>
 
@@ -565,7 +565,7 @@ let chartLong;
 function simulate() {
   const baseDays = Math.min(1200, parseInt(document.getElementById('days').value));
   chart = runSim(baseDays, 'chart', chart);
-  chartMid = runSim(baseDays * 4, 'chartMid', chartMid);
+  chartMid = runSim(baseDays * 3, 'chartMid', chartMid);
   chartLong = runSim(baseDays * 400, 'chartLong', chartLong);
 }
 
