@@ -63,7 +63,7 @@
 <canvas id="chart"></canvas>
 <h2>3x Time</h2>
 <canvas id="chartMid"></canvas>
-<h2>100x Time</h2>
+<h2>200x Time</h2>
 <canvas id="chartLong"></canvas>
 <div class="form-grid">
 
@@ -585,7 +585,7 @@ function simulate() {
   const baseDays = Math.min(1200, parseInt(document.getElementById('days').value));
   chart = runSim(baseDays, 'chart', chart);
   chartMid = runSim(baseDays * 3, 'chartMid', chartMid);
-  chartLong = runSim(baseDays * 100, 'chartLong', chartLong);
+  chartLong = runSim(baseDays * 200, 'chartLong', chartLong);
 }
 
 function setChemistryDefaults() {
