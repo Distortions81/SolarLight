@@ -249,17 +249,29 @@ let chart;
 let chartMid;
 let chartLong;
 
+  function hourFraction(start, duration, hour) {
+    start = ((start % 24) + 24) % 24;
+    const end = start + duration;
+    const hourStart = hour;
+    const hourEnd = hour + 1;
+    const overlap = (s, e) => Math.max(0, Math.min(hourEnd, e) - Math.max(hourStart, s));
+    if (end <= 24) {
+      return overlap(start, end);
+    }
+    return overlap(start, 24) + overlap(0, end - 24);
+  }
+
   function runSim(simDays, canvasId, oldChart) {
     let capacity = parseFloat(document.getElementById("capacity").value);
     const initialCapacity = capacity;
   const initialSoC = parseFloat(document.getElementById("soc").value);
   const cells = parseInt(document.getElementById("cells").value);
-  const sunHours = parseInt(document.getElementById("sunHours").value);
-  const indirectHours = parseInt(document.getElementById("indirectHours").value);
-  const morningHours = parseInt(document.getElementById("morningHours").value);
-  const nightHours = parseInt(document.getElementById("nightHours").value);
-  const sunrise = parseInt(document.getElementById("sunrise").value);
-  const sunset = parseInt(document.getElementById("sunset").value);
+  const sunHours = parseFloat(document.getElementById("sunHours").value);
+  const indirectHours = parseFloat(document.getElementById("indirectHours").value);
+  const morningHours = parseFloat(document.getElementById("morningHours").value);
+  const nightHours = parseFloat(document.getElementById("nightHours").value);
+  const sunrise = parseFloat(document.getElementById("sunrise").value);
+  const sunset = parseFloat(document.getElementById("sunset").value);
   const boostCutoff = parseFloat(document.getElementById("boostCutoff").value);
   const ledNominalCurrent = parseFloat(document.getElementById("ledCurrent").value);
   const driverEff = parseFloat(document.getElementById("driverEff").value) / 100;
@@ -354,18 +366,15 @@ let chartLong;
       const isMorning = morningHours > 0 && (morningStart >= 0
         ? (hour >= morningStart && hour < sunrise)
         : (hour >= morningStart + 24 || hour < sunrise));
-      const nightEnd = (sunset + nightHours) % 24;
-      const isNight = nightEnd > sunset
-        ? (hour >= sunset && hour < nightEnd)
-        : (hour >= sunset || hour < nightEnd);
+      const nightFraction = hourFraction(sunset, nightHours, hour);
 
       sunData.push(isSun ? 1 : 0);
       indirectData.push(isIndirect ? 1 : 0);
       dayData.push(isDay && !isSun && !isIndirect ? 1 : 0);
       morningData.push(isMorning ? 1 : 0);
 
-      const ledOn = isNight && batteryV > cells * boostCutoff && soc > 0;
-      ledData.push(ledOn ? 1 : 0);
+      const ledOn = nightFraction > 0 && batteryV > cells * boostCutoff && soc > 0;
+      ledData.push(ledOn ? nightFraction : 0);
       let ledCurrent = 0;
       let brightnessPct = 0;
       if (ledOn) {
@@ -406,7 +415,7 @@ let chartLong;
         }
       } else if (ledOn) {
         const batteryCurrent = ledCurrent / driverEff;
-        delta_mAh = -batteryCurrent;
+        delta_mAh = -batteryCurrent * nightFraction;
       }
 
       delta_mAh -= (capacity * selfDischarge) / 24;
@@ -461,14 +470,15 @@ let chartLong;
       ledHoursDaily.push(ledData.slice(start, end).reduce((a, v) => a + v, 0));
       const bSlice = brightData.slice(start, end);
       let sum = 0;
-      let count = 0;
+      let weight = 0;
       for (let i = 0; i < bSlice.length; i++) {
-        if (ledData[start + i]) {
-          sum += bSlice[i];
-          count++;
+        const frac = ledData[start + i];
+        if (frac) {
+          sum += bSlice[i] * frac;
+          weight += frac;
         }
       }
-      brightAvgDaily.push(count ? sum / count : 0);
+      brightAvgDaily.push(weight ? sum / weight : 0);
     }
   }
 
