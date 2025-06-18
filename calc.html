@@ -91,17 +91,6 @@
 <small class="note">Usually 8–12 hours</small>
 </div>
 
-<div class="field">
-<label for="sunrise">Sunrise Hour (0–23)</label>
-<input type="number" id="sunrise" value="6" min="0" max="23" step="any">
-<small class="note">Average sunrise ~6am</small>
-</div>
-
-<div class="field">
-<label for="sunset">Sunset Hour (0–23)</label>
-<input type="number" id="sunset" value="20" min="1" max="23" step="any">
-<small class="note">Average sunset ~6pm</small>
-</div>
 
 <div class="field">
 <label for="days">Days at max zoom (top chart)</label>
@@ -219,11 +208,6 @@
 <small class="note">Boost driver: 70–85%</small>
 </div>
 
-<div class="field">
-<label for="ledEff">LED Efficacy (lm/W)</label>
-<input type="number" id="ledEff" value="80">
-<small class="note">Typical white LED efficacy</small>
-</div>
 
 <div class="field">
 <label for="degLED">LED Brightness Loss per Day (%)</label>
@@ -269,12 +253,11 @@ let chartLong;
   const eveningHours = parseFloat(document.getElementById("eveningHours").value);
   const morningHours = parseFloat(document.getElementById("morningHours").value);
   const nightHours = parseFloat(document.getElementById("nightHours").value);
-  const sunrise = parseFloat(document.getElementById("sunrise").value);
-  const sunset = parseFloat(document.getElementById("sunset").value);
+  const sunrise = 6;
+  const sunset = 20;
   const boostCutoff = parseFloat(document.getElementById("boostCutoff").value);
   const ledNominalCurrent = parseFloat(document.getElementById("ledCurrent").value);
   const driverEff = parseFloat(document.getElementById("driverEff").value) / 100;
-  const ledEfficacy = parseFloat(document.getElementById("ledEff").value);
   const days = simDays;
   let voc = parseFloat(document.getElementById("voc").value);
   let isc = parseFloat(document.getElementById("isc").value);
