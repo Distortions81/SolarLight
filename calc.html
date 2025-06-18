@@ -150,6 +150,12 @@
 </div>
 
 <div class="field">
+<label for="degCycle">Battery Capacity Loss per Cycle (%)</label>
+<input type="number" id="degCycle" value="0.05" step="any">
+<small class="note">0.05% NiMH, 0.02% NiCad</small>
+</div>
+
+<div class="field">
 <label for="damageHighV">Damage High Voltage (V/cell)</label>
 <input type="number" id="damageHighV" value="1.45" step="any">
 <small class="note">NiMH ≈1.45V, NiCad ≈1.4V</small>
@@ -267,6 +273,7 @@ let chartLong;
   const selfDischarge = parseFloat(document.getElementById("selfDischarge").value) / 100;
   const enableDeg = document.getElementById("enableDeg").checked;
   const degBattery = parseFloat(document.getElementById("degBattery").value) / 100;
+  const degCycle = parseFloat(document.getElementById("degCycle").value) / 100;
   const degSolar = parseFloat(document.getElementById("degSolar").value) / 100;
   const degLED = parseFloat(document.getElementById("degLED").value) / 100;
   const chemistry = document.getElementById("chemistry").value;
@@ -307,6 +314,7 @@ let chartLong;
   const ledGamma = 2.2;
   const ledVoltExp = 2;
   let overCharge = 0;
+  let cycleProgress = 0;
 
   for (let day = 0; day < days; day++) {
     if (day > 0 && enableDeg) {
@@ -424,6 +432,17 @@ let chartLong;
           soc = Math.min(100, adjPct);
           overCharge = Math.max(0, adjPct - 100);
         }
+      cycleProgress += Math.abs(delta_soc) / 100;
+      if (enableDeg && cycleProgress >= 1) {
+        const cycles = Math.floor(cycleProgress);
+        const prevCap = capacity;
+        capacity *= Math.pow(1 - degCycle, cycles);
+        const stored = ((soc + overCharge) / 100) * prevCap;
+        const adjPct = (stored / capacity) * 100;
+        soc = Math.min(100, adjPct);
+        overCharge = Math.max(0, adjPct - 100);
+        cycleProgress -= cycles;
+      }
     }
   }
 
@@ -574,14 +593,17 @@ function setChemistryDefaults() {
   const highV = document.getElementById('damageHighV');
   const lowV = document.getElementById('damageLowV');
   const rate = document.getElementById('damageRate');
+  const cycle = document.getElementById('degCycle');
   if (chem === 'NiCad') {
     highV.value = 1.4;
     lowV.value = 0.9;
     rate.value = 0.2;
+    if (cycle) cycle.value = 0.02;
   } else {
     highV.value = 1.45;
     lowV.value = 1.0;
     rate.value = 0.1;
+    if (cycle) cycle.value = 0.05;
   }
 }
 
