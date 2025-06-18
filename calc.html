@@ -158,8 +158,8 @@
 
 <div class="field">
 <label for="damageHighV">Damage High Voltage (V/cell)</label>
-<input type="number" id="damageHighV" value="1.550" step="any">
-<small class="note">NiMH ≈1.5V, NiCad ≈1.55V</small>
+<input type="number" id="damageHighV" value="1.400" step="any">
+<small class="note">NiMH ≈1.4V, NiCad ≈1.40V</small>
 </div>
 
 <div class="field">
@@ -170,8 +170,8 @@
 
 <div class="field">
 <label for="damageRate">Damage Capacity Loss per Hour (%)</label>
-<input type="number" id="damageRate" value="0.08" step="any">
-<small class="note">0.1% NiMH, 0.08% NiCad</small>
+<input type="number" id="damageRate" value="0.07" step="any">
+<small class="note">0.1% NiMH, 0.07% NiCad</small>
 </div>
 
 <h3 class="full">Solar Cell</h3>
@@ -665,13 +665,13 @@ function setChemistryDefaults() {
   const rate = document.getElementById('damageRate');
   const cycle = document.getElementById('degCycle');
   if (chem === 'NiCad') {
-    highV.value = 1.4;
+    highV.value = 1.40;
     lowV.value = 0.9;
     rate.value = 0.08;
     if (cycle) cycle.value = 0.02;
   } else {
-    highV.value = 1.45;
-    lowV.value = 1.0;
+    highV.value = 1.4;
+    lowV.value = 0.9;
     rate.value = 0.1;
     if (cycle) cycle.value = 0.05;
   }
