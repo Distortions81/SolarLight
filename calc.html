@@ -150,19 +150,20 @@
 
 <div class="field">
 <label for="damageHighV">Damage High Voltage (V/cell)</label>
-<input type="number" id="damageHighV" value="1.4" step="any">
-<small class="note">Above this voltage battery degrades</small>
+<input type="number" id="damageHighV" value="1.45" step="any">
+<small class="note">NiMH ≈1.45V, NiCad ≈1.4V</small>
 </div>
 
 <div class="field">
 <label for="damageLowV">Damage Low Voltage (V/cell)</label>
 <input type="number" id="damageLowV" value="1.0" step="any">
-<small class="note">Below this voltage battery degrades</small>
+<small class="note">NiMH ≈1.0V, NiCad ≈0.9V</small>
 </div>
 
 <div class="field">
 <label for="damageRate">Damage Capacity Loss per Hour (%)</label>
 <input type="number" id="damageRate" value="0.1" step="any">
+<small class="note">0.1% NiMH, 0.2% NiCad</small>
 </div>
 
 <h3 class="full">Solar Cell</h3>
@@ -507,10 +508,31 @@ function simulate() {
   chartLong = runSim(baseDays * 100, 'chartLong', chartLong);
 }
 
+function setChemistryDefaults() {
+  const chem = document.getElementById('chemistry').value;
+  const highV = document.getElementById('damageHighV');
+  const lowV = document.getElementById('damageLowV');
+  const rate = document.getElementById('damageRate');
+  if (chem === 'NiCad') {
+    highV.value = 1.4;
+    lowV.value = 0.9;
+    rate.value = 0.2;
+  } else {
+    highV.value = 1.45;
+    lowV.value = 1.0;
+    rate.value = 0.1;
+  }
+}
+
 window.addEventListener('load', () => {
+  setChemistryDefaults();
   simulate();
   document.querySelectorAll('input, select').forEach(el =>
     el.addEventListener('input', simulate));
+  document.getElementById('chemistry').addEventListener('change', () => {
+    setChemistryDefaults();
+    simulate();
+  });
 });
 </script>
 
