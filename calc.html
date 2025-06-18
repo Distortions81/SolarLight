@@ -163,6 +163,8 @@ function simulate() {
   const socColors = [];
   const voltageData = [];
   const ledData = [];
+  const sunData = [];
+  const dayData = [];
   const labels = [];
 
   // LED power at 1.2V baseline
@@ -192,11 +194,16 @@ function simulate() {
       socColors.push(soc > 80 ? 'gold' : soc < 30 ? 'red' : '#28a745');
 
       let delta_mAh = 0;
-      const isSun = hour >= sunrise && hour < Math.min(24, sunrise + sunHours);
+      const directSunEnd = Math.min(sunset, sunrise + sunHours);
+      const isSun = hour >= sunrise && hour < directSunEnd;
+      const isDay = hour >= sunrise && hour < sunset;
       const nightEnd = (sunset + nightHours) % 24;
       const isNight = nightEnd > sunset ?
         (hour >= sunset && hour < nightEnd) :
         (hour >= sunset || hour < nightEnd);
+
+      sunData.push(isSun ? 1 : 0);
+      dayData.push(isDay && !isSun ? 1 : 0);
 
       const ledOn = isNight && batteryV > cells * boostCutoff;
       ledData.push(ledOn ? 1 : 0);
@@ -281,9 +288,25 @@ function simulate() {
         },
         {
           type: 'bar',
+          label: 'Direct Sun',
+          data: sunData,
+          backgroundColor: 'rgba(255,255,0,0.3)',
+          borderWidth: 0,
+          yAxisID: 'yLED'
+        },
+        {
+          type: 'bar',
+          label: 'Daylight',
+          data: dayData,
+          backgroundColor: 'rgba(255,165,0,0.3)',
+          borderWidth: 0,
+          yAxisID: 'yLED'
+        },
+        {
+          type: 'bar',
           label: 'LED On',
           data: ledData,
-          backgroundColor: 'rgba(255,215,0,0.3)',
+          backgroundColor: 'rgba(0,255,255,0.3)',
           borderWidth: 0,
           yAxisID: 'yLED'
         }
