@@ -262,7 +262,7 @@ let chartLong;
     return overlap(start, 24) + overlap(0, end - 24);
   }
 
-  function runSim(simDays, canvasId, oldChart) {
+  function runSim(simDays, canvasId, oldChart, showSoC = true) {
     let capacity = parseFloat(document.getElementById("capacity").value);
     capacity = Math.max(0, capacity);
     const initialCapacity = capacity > 0 ? capacity : 1;
@@ -558,9 +558,13 @@ let chartLong;
   const datasets = [];
 
   if (days > 30) {
+    if (showSoC) {
+      datasets.push(
+        { label: 'Battery SoC High (%)', data: socHigh, borderColor: '#28a745', tension: 0.3, yAxisID: 'ySoC', fill: false },
+        { label: 'Battery SoC Low (%)', data: socLow, borderColor: '#28a745', tension: 0.3, yAxisID: 'ySoC', fill: '-1', backgroundColor: 'rgba(40,167,69,0.1)' }
+      );
+    }
     datasets.push(
-      { label: 'Battery SoC High (%)', data: socHigh, borderColor: '#28a745', tension: 0.3, yAxisID: 'ySoC', fill: false },
-      { label: 'Battery SoC Low (%)', data: socLow, borderColor: '#28a745', tension: 0.3, yAxisID: 'ySoC', fill: '-1', backgroundColor: 'rgba(40,167,69,0.1)' },
       { label: 'Battery Voltage High (V)', data: voltageHigh, borderColor: '#007bff', tension: 0.3, yAxisID: 'yVoltage', fill: false },
       { label: 'Battery Voltage Low (V)', data: voltageLow, borderColor: '#007bff', tension: 0.3, yAxisID: 'yVoltage', fill: '-1', backgroundColor: 'rgba(0,123,255,0.1)' },
       { label: 'Battery Current High (mA)', data: currentHigh, borderColor: 'orange', tension: 0.3, yAxisID: 'yCurrent', fill: false },
@@ -569,8 +573,12 @@ let chartLong;
       { label: 'LED Brightness Avg (%)', data: brightAvgDaily, borderColor: 'purple', backgroundColor: 'rgba(128,0,128,0.1)', tension: 0.3, yAxisID: 'yBright', fill: false }
     );
   } else {
+    if (showSoC) {
+      datasets.push(
+        { label: 'Battery SoC (%)', data: socData, borderColor: '#28a745', backgroundColor: 'rgba(40,167,69,0.1)', tension: 0.3, yAxisID: 'ySoC', fill: true, pointBackgroundColor: socColors }
+      );
+    }
     datasets.push(
-      { label: 'Battery SoC (%)', data: socData, borderColor: '#28a745', backgroundColor: 'rgba(40,167,69,0.1)', tension: 0.3, yAxisID: 'ySoC', fill: true, pointBackgroundColor: socColors },
       { label: 'Battery Voltage (V)', data: voltageData, borderColor: '#007bff', backgroundColor: 'rgba(0,123,255,0.1)', tension: 0.3, yAxisID: 'yVoltage', fill: true },
       { label: 'Battery Damage Risk', data: damageData, borderColor: 'red', backgroundColor: 'red', showLine: false, pointRadius: 4, yAxisID: 'yVoltage' }
     );
@@ -616,6 +624,7 @@ let chartLong;
           position: 'left',
           min: 0,
           max: 100,
+          display: showSoC,
           title: { display: true, text: 'State of Charge (%)' }
         },
         yVoltage: {
@@ -658,9 +667,9 @@ let chartLong;
 
 function simulate() {
   const baseDays = Math.min(1200, parseInt(document.getElementById('days').value));
-  chart = runSim(baseDays, 'chart', chart);
-  chartMid = runSim(baseDays * 3, 'chartMid', chartMid);
-  chartLong = runSim(baseDays * 200, 'chartLong', chartLong);
+  chart = runSim(baseDays, 'chart', chart, false);
+  chartMid = runSim(baseDays * 3, 'chartMid', chartMid, false);
+  chartLong = runSim(baseDays * 200, 'chartLong', chartLong, true);
 }
 
 function setChemistryDefaults() {
