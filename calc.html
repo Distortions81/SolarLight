@@ -61,6 +61,8 @@
 <h1>Solar Garden Light Sim</h1>
 
 <canvas id="chart"></canvas>
+<h2>10x Time</h2>
+<canvas id="chartMid"></canvas>
 <h2>100x Time</h2>
 <canvas id="chartLong"></canvas>
 <div class="form-grid">
@@ -220,6 +222,12 @@
 </div>
 
 <div class="field">
+<label for="degLED">LED Brightness Loss per Day (%)</label>
+<input type="number" id="degLED" value="0.02" step="any">
+<small class="note">LED aging ~0.02% per day</small>
+</div>
+
+<div class="field">
 <label for="boostCutoff">Boost Converter Cutoff (V/cell)</label>
 <input type="number" id="boostCutoff" value="0.95" step="any">
 <small class="note">LED driver stops below this voltage</small>
@@ -233,6 +241,7 @@
 
 <script>
 let chart;
+let chartMid;
 let chartLong;
 
   function runSim(simDays, canvasId, oldChart) {
@@ -260,6 +269,7 @@ let chartLong;
   const enableDeg = document.getElementById("enableDeg").checked;
   const degBattery = parseFloat(document.getElementById("degBattery").value) / 100;
   const degSolar = parseFloat(document.getElementById("degSolar").value) / 100;
+  const degLED = parseFloat(document.getElementById("degLED").value) / 100;
   const chemistry = document.getElementById("chemistry").value;
   const maxCellV = chemistry === "NiCad" ? 1.65 : 1.55;
   const damageHighV = parseFloat(document.getElementById("damageHighV").value);
@@ -277,7 +287,7 @@ let chartLong;
   const indirectData = [];
   const dayData = [];
   const morningData = [];
-  const lumenData = [];
+  const brightData = [];
   const currentData = [];
   const currentHigh = [];
   const currentLow = [];
@@ -291,8 +301,10 @@ let chartLong;
   const morningFactor = 0.05;
   const indirectFactor = 0.1;
 
-  const ledPower_mW = 1.5 * ledNominalCurrent;
-  const lumens = (ledPower_mW * ledEfficacy) / 1000;
+  let ledBrightFactor = 1;
+  const ledVoltageRef = 1.5;
+  const ledGamma = 0.8;
+  const ledVoltExp = 2;
   let overCharge = 0;
 
   for (let day = 0; day < days; day++) {
@@ -301,6 +313,7 @@ let chartLong;
       capacity *= (1 - degBattery);
       voc *= (1 - degSolar);
       isc *= (1 - degSolar);
+      ledBrightFactor *= (1 - degLED);
       const stored = ((soc + overCharge) / 100) * prevCap;
       const adjPct = (stored / capacity) * 100;
       soc = Math.min(100, adjPct);
@@ -344,7 +357,16 @@ let chartLong;
 
       const ledOn = isNight && batteryV > cells * boostCutoff;
       ledData.push(ledOn ? 1 : 0);
-      lumenData.push(ledOn ? lumens : 0);
+      let ledCurrent = 0;
+      let brightnessPct = 0;
+      if (ledOn) {
+        const vRatio = batteryV / (cells * ledVoltageRef);
+        const curve = Math.pow(Math.min(1, vRatio), ledVoltExp);
+        ledCurrent = ledNominalCurrent * curve;
+        const physBright = Math.min(1, curve * ledBrightFactor);
+        brightnessPct = Math.pow(physBright, ledGamma) * 100;
+      }
+      brightData.push(brightnessPct);
 
       if (isSun || isIndirect || isDay || isMorning) {
         let intensity = 0;
@@ -374,8 +396,8 @@ let chartLong;
           }
         }
       } else if (ledOn) {
-        const actualLEDCurrent = batteryV > 0 ? (ledPower_mW / driverEff) / batteryV : 0;
-        delta_mAh = -actualLEDCurrent;
+        const batteryCurrent = ledCurrent / driverEff;
+        delta_mAh = -batteryCurrent;
       }
 
       delta_mAh -= (capacity * selfDischarge) / 24;
@@ -463,7 +485,7 @@ let chartLong;
       { type: 'bar', label: 'LED On', data: ledData, backgroundColor: 'rgba(0,255,255,0.3)', borderWidth: 0, yAxisID: 'yLED' }
     );
     datasets.push(
-      { label: 'LED Lumens', data: lumenData, borderColor: 'purple', backgroundColor: 'rgba(128,0,128,0.1)', tension: 0.3, yAxisID: 'yLumens', fill: false }
+      { label: 'LED Brightness (%)', data: brightData, borderColor: 'purple', backgroundColor: 'rgba(128,0,128,0.1)', tension: 0.3, yAxisID: 'yBright', fill: false }
     );
   }
 
@@ -510,12 +532,12 @@ let chartLong;
           min: 0,
           max: 1
         },
-        yLumens: {
+        yBright: {
           type: 'linear',
           position: 'right',
           min: 0,
-          max: lumens,
-          title: { display: true, text: 'LED Lumens' },
+          max: 100,
+          title: { display: true, text: 'LED Brightness (%)' },
           grid: { drawOnChartArea: false }
         }
       }
@@ -526,6 +548,7 @@ let chartLong;
 function simulate() {
   const baseDays = Math.min(1200, parseInt(document.getElementById('days').value));
   chart = runSim(baseDays, 'chart', chart);
+  chartMid = runSim(baseDays * 10, 'chartMid', chartMid);
   chartLong = runSim(baseDays * 100, 'chartLong', chartLong);
 }
 
