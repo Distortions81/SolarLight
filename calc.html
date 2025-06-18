@@ -224,9 +224,10 @@ function simulate() {
   const degBattery = parseFloat(document.getElementById("degBattery").value) / 100;
   const degSolar = parseFloat(document.getElementById("degSolar").value) / 100;
   const chemistry = document.getElementById("chemistry").value;
-  const minCellV = chemistry === "NiCad" ? 0.9 : 1.0;
-  const overChargeV = chemistry === "NiCad" ? 1.55 : 1.45;
   const maxCellV = chemistry === "NiCad" ? 1.65 : 1.55;
+  const damageHighV = 1.4; // voltage above which damage occurs (per cell)
+  const damageLowV = 1.0;  // voltage below which damage occurs (per cell)
+  const damageHourDegrade = 0.001; // capacity loss per hour in damage range
   const damageData = [];
 
   let soc = initialSoC;
@@ -275,7 +276,8 @@ function simulate() {
       );
       const batteryV = cells * cellV;
       voltageData.push(batteryV);
-      damageData.push((batteryV > cells * overChargeV || batteryV < cells * minCellV) ? batteryV : null);
+      const inDamageRange = batteryV > cells * damageHighV || batteryV < cells * damageLowV;
+      damageData.push(inDamageRange ? batteryV : null);
 
       socColors.push(soc > 80 ? 'gold' : soc < 30 ? 'red' : '#28a745');
 
@@ -354,6 +356,9 @@ function simulate() {
         overCharge = 0;
       }
       currentData.push(delta_mAh);
+      if (enableDeg && inDamageRange) {
+        capacity *= (1 - damageHourDegrade);
+      }
     }
   }
 
