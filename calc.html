@@ -568,12 +568,11 @@ let chartLong;
   } else {
     if (showSoC) {
       datasets.push(
-        { label: 'Battery SoC (%)', data: socData, borderColor: '#28a745', backgroundColor: 'rgba(40,167,69,0.1)', tension: 0.3, yAxisID: 'ySoC', fill: true, pointBackgroundColor: socColors }
+        { label: 'Battery SoC (%)', data: socData, borderColor: '#28a745', backgroundColor: 'rgba(40,167,69,0.1)', tension: 0.3, yAxisID: 'ySoC', fill: true }
       );
     }
     datasets.push(
-      { label: 'Battery Voltage (V)', data: voltageData, borderColor: '#007bff', backgroundColor: 'rgba(0,123,255,0.1)', tension: 0.3, yAxisID: 'yVoltage', fill: true },
-      { label: 'Battery Damage Risk', data: damageData, borderColor: 'red', backgroundColor: 'red', showLine: false, pointRadius: 4, yAxisID: 'yVoltage' }
+      { label: 'Battery Voltage (V)', data: voltageData, borderColor: '#007bff', backgroundColor: 'rgba(0,123,255,0.1)', tension: 0.3, yAxisID: 'yVoltage', fill: true }
     );
   }
 
@@ -588,13 +587,6 @@ let chartLong;
       fill: false
     });
     datasets.push(
-      { type: 'bar', label: 'Direct Sun', data: sunData, backgroundColor: 'rgba(255,255,0,0.3)', borderWidth: 0, yAxisID: 'yLED' },
-      { type: 'bar', label: 'Indirect Sun', data: indirectData, backgroundColor: 'rgba(200,200,0,0.3)', borderWidth: 0, yAxisID: 'yLED' },
-      { type: 'bar', label: 'Morning Light', data: morningData, backgroundColor: 'rgba(173,216,230,0.3)', borderWidth: 0, yAxisID: 'yLED' },
-      { type: 'bar', label: 'Daylight', data: dayData, backgroundColor: 'rgba(255,165,0,0.3)', borderWidth: 0, yAxisID: 'yLED' },
-      { type: 'bar', label: 'LED On', data: ledData, backgroundColor: 'rgba(0,255,255,0.3)', borderWidth: 0, yAxisID: 'yLED' }
-    );
-    datasets.push(
       { label: 'LED Brightness (%)', data: brightData, borderColor: 'purple', backgroundColor: 'rgba(128,0,128,0.1)', tension: 0.3, yAxisID: 'yBright', fill: false }
     );
   }
@@ -607,6 +599,7 @@ let chartLong;
     },
     options: {
       responsive: true,
+      elements: { point: { radius: 0 } },
       scales: {
         x: {
           title: { display: true, text: days > 30 ? 'Day' : 'Time (Hour × Day)' },
