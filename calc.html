@@ -506,6 +506,7 @@ let chartLong;
         0.9 + 0.7 * (soc / 100)
       );
       const batteryEnd = cells * cellEnd;
+      voltageData[voltageData.length - 1] = batteryEnd;
       if (damageFlag || batteryEnd > cells * damageHighV || batteryEnd < cells * damageLowV) {
         damageData[damageData.length - 1] = batteryEnd;
       }
